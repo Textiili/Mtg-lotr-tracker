@@ -8,7 +8,6 @@ const FullscreenHandler = () => {
     NavigationBar.setBehaviorAsync("overlay-swipe");
 
     return () => {
-      // Restore navigation bar when component unmounts (optional)
       NavigationBar.setVisibilityAsync("visible");
     };
   }, []);
