@@ -1,35 +1,38 @@
-import { ImageBackground, StyleSheet, Text, View } from "react-native";
+import { ImageBackground, Image, StyleSheet, Text, View } from "react-native";
 import FullscreenHandler from "./components/FullScreenHandler";
-import React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
-//TODO: Custom splash screen for download
+const imageUri = require("./assets/images/MiddleEarthMap.webp");
+//TODO: Custom splash screen for download?
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const [imageLoaded, setImageLoaded] = useState(false)
   const [fontsLoaded, fontError] = useFonts({
     'Hobbiton': require('./assets/fonts/HobbitonBrushhand.ttf'),
     'MiddleEarth': require('./assets/fonts/MiddleEarth.ttf'),
   });
 
-  React.useEffect(() => {
-    if (fontsLoaded || fontError) {
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && imageLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, imageLoaded]);
 
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
+  const onImageLoad = useCallback(() => {
+    setImageLoaded(true);
+  }, [])
 
   return (
     <>
       <FullscreenHandler />
       <ImageBackground
-        source={require("./assets/images/middle-earth-map.webp")}
+        source={imageUri}
         style={styles.background}
         resizeMode="cover"
+        onLoad={onImageLoad}
       >
         <View style={styles.overlay}>
           <Text style={styles.text}>Middle-earth</Text>
