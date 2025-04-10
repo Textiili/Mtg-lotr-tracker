@@ -1,62 +1,62 @@
-import { ImageBackground, Image, StyleSheet, Text, View } from "react-native";
-import FullscreenHandler from "./components/FullScreenHandler";
-import { useState, useEffect, useCallback } from "react";
+import { View, ActivityIndicator } from "react-native";
 import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
+import * as ScreenOrientation from 'expo-screen-orientation'
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useCallback, ReactNode } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
-const imageUri = require("./assets/images/MiddleEarthMap.webp");
-//TODO: Custom splash screen for download?
-SplashScreen.preventAutoHideAsync();
+import GameSetup from './screens/GameSetup';
+
+const Stack = createNativeStackNavigator();
+
+interface OrientationWrapperProps {
+  children: ReactNode;
+  orientation: ScreenOrientation.OrientationLock;
+}
+
+function OrientationWrapper({ children, orientation }: OrientationWrapperProps) {
+  useFocusEffect(
+    useCallback(() => {
+      ScreenOrientation.lockAsync(orientation);
+      
+      return () => {
+        ScreenOrientation.unlockAsync();
+      };
+    }, [orientation])
+  );
+
+  return <>{children}</>;
+}
+
+function GameSetupWithOrientation() {
+  return (
+    <OrientationWrapper orientation={ScreenOrientation.OrientationLock.PORTRAIT}>
+      <GameSetup />
+    </OrientationWrapper>
+  );
+}
 
 export default function App() {
-  const [imageLoaded, setImageLoaded] = useState(false)
+
   const [fontsLoaded, fontError] = useFonts({
     'Hobbiton': require('./assets/fonts/HobbitonBrushhand.ttf'),
     'MiddleEarth': require('./assets/fonts/MiddleEarth.ttf'),
   });
 
-  useEffect(() => {
-    if ((fontsLoaded || fontError) && imageLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError, imageLoaded]);
-
-  const onImageLoad = useCallback(() => {
-    setImageLoaded(true);
-  }, [])
+  if (!fontsLoaded) {
+    return(
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large"/>
+      </View>
+    )
+  }
 
   return (
-    <>
-      <FullscreenHandler />
-      <ImageBackground
-        source={imageUri}
-        style={styles.background}
-        resizeMode="cover"
-        onLoad={onImageLoad}
-      >
-        <View style={styles.overlay}>
-          <Text style={styles.text}>Middle-earth</Text>
-        </View>
-      </ImageBackground>
-    </>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Setup">
+        <Stack.Screen name="Setup" options={{headerShown: false}} component={GameSetupWithOrientation} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
-  },
-  text: {
-    fontFamily: 'MiddleEarth',
-    color: 'black',
-    fontSize: 80,
-  },
-});
