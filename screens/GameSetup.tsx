@@ -1,7 +1,18 @@
-import { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function GameSetup() {
+  useFocusEffect(
+    useCallback(() => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      return () => {
+        ScreenOrientation.unlockAsync();
+      };
+    }, [])
+  );
+
   const [players, setPlayers] = useState<number | null>(null);
   const [startingLife, setStartingLife] = useState<number | null>(null);
 

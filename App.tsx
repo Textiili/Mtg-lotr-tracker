@@ -1,41 +1,11 @@
 import { View, ActivityIndicator } from "react-native";
 import { useFonts } from 'expo-font';
-import * as ScreenOrientation from 'expo-screen-orientation'
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useCallback, ReactNode } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 
 import GameSetup from './screens/GameSetup';
 
 const Stack = createNativeStackNavigator();
-
-interface OrientationWrapperProps {
-  children: ReactNode;
-  orientation: ScreenOrientation.OrientationLock;
-}
-
-function OrientationWrapper({ children, orientation }: OrientationWrapperProps) {
-  useFocusEffect(
-    useCallback(() => {
-      ScreenOrientation.lockAsync(orientation);
-      
-      return () => {
-        ScreenOrientation.unlockAsync();
-      };
-    }, [orientation])
-  );
-
-  return <>{children}</>;
-}
-
-function GameSetupWithOrientation() {
-  return (
-    <OrientationWrapper orientation={ScreenOrientation.OrientationLock.PORTRAIT}>
-      <GameSetup />
-    </OrientationWrapper>
-  );
-}
 
 export default function App() {
 
@@ -55,7 +25,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Setup">
-        <Stack.Screen name="Setup" options={{headerShown: false}} component={GameSetupWithOrientation} />
+        <Stack.Screen name="Setup" component={GameSetup} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
