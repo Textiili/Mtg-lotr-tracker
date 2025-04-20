@@ -2,10 +2,12 @@ import { View, ActivityIndicator } from "react-native";
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { RootStackParamList } from './types/RootStackParamList';
 
 import GameSetup from './screens/GameSetup';
+import GameScreen from "./screens/GameScreen";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
 
@@ -24,8 +26,9 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Setup">
-        <Stack.Screen name="Setup" component={GameSetup} options={{headerShown: false}} />
+      <Stack.Navigator initialRouteName="GameSetup">
+        <Stack.Screen name="GameSetup" component={GameSetup} options={{headerShown: false}} />
+        <Stack.Screen name="GameScreen" component={GameScreen} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,20 +1,27 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/RootStackParamList';
 
 export default function GameSetup() {
-  useFocusEffect(
-    useCallback(() => {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-      return () => {
-        ScreenOrientation.unlockAsync();
-      };
-    }, [])
-  );
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'GameSetup'>>();
 
   const [players, setPlayers] = useState<number | null>(null);
   const [startingLife, setStartingLife] = useState<number | null>(null);
+
+  useEffect(() => {
+    const lockOrientation = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    };
+    
+    lockOrientation();
+    
+    return () => {
+      ScreenOrientation.unlockAsync();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -49,8 +56,14 @@ export default function GameSetup() {
       <View style={styles.section}>
         <TouchableOpacity
           style={[styles.startButtonContainer, players && startingLife ? styles.enabledButton : styles.disabledButton]}
-          onPress={() => console.log('Game Started')}
-          disabled={!players || !startingLife}>
+          onPress={() => navigation.navigate('GameScreen', 
+            {
+              players: players!,
+              startingLife: startingLife!,
+            }
+          )}
+          //disabled={!players || !startingLife}
+        >
           <Text style={styles.buttonText}>Start Game</Text>
         </TouchableOpacity>
       </View>
