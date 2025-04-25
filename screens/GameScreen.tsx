@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { RouteProp } from '@react-navigation/native';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { RootStackParamList } from '../types/RootStackParamList';
 
 type GameScreenRouteProp = RouteProp<RootStackParamList, 'GameScreen'>;
@@ -11,20 +11,22 @@ type Props = {
 };
 
 export default function GameScreen({ route }: Props) {
-  if (
-    !route?.params ||
-    route.params.players == null ||
-    route.params.startingLife == null
-  ) {
+  if (!route?.params || !route.params.players || !route.params.startingLife) {
     console.error(`route.params: ${JSON.stringify(route?.params)}`);
-    return (//TODO: ErrorScreen.tsx
+    return (//TODO: Make separate ErrorScreen
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Error: Missing game setup data</Text>
       </View>
     );
   }
 
-  const { players, startingLife } = route.params;
+  const { players } = route.params;
+  const [lifeTotals, setLifeTotals] = useState<number[]>(() =>
+    Array.from({ length: route.params.players }, () => route.params.startingLife)
+  );
+
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const lockOrientation = async () => {
@@ -38,27 +40,164 @@ export default function GameScreen({ route }: Props) {
     };
   }, []);
 
-  const renderPlayer = (index: number) => (
-    <View key={index} style={styles.playerBox}>
-      <Text style={styles.lifeText}>Player {index + 1}{'\n'}{startingLife} HP</Text>
-    </View>
-  );
+  const changeLife = (index: number, delta: number) => {
+    setLifeTotals(prev => {
+      const updated = [...prev];
+      updated[index] += delta;
+      return updated;
+    });
+  };
+  
+  const TIMING = {
+    initialDelay: 800,
+    repeatInterval: 200,  
+    acceleration: 0.85,  
+    maxSpeed: 50          
+  };
+  
+  const startChanging = (index: number, delta: number) => {
+    changeLife(index, delta);
+    
+    let speed = TIMING.repeatInterval;
+    
+    timeoutRef.current = setTimeout(() => {
+      const change = () => {
+        changeLife(index, delta * 10);
+        speed = Math.max(TIMING.maxSpeed, speed * TIMING.acceleration);
+        intervalRef.current = setTimeout(change, speed);
+      };
+      change(); 
+    }, TIMING.initialDelay);
+  };
+  
+  const stopChanging = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+  
+  const renderPlayerContents = (index: number) => {
+    const [isHolding, setIsHolding] = useState(false);
+  
+    return (
+      <>
+        <View style={styles.lifeContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              if (!isHolding) {
+                changeLife(index, -1);
+              }
+            }}
+            onPressIn={() => {
+              setIsHolding(true);
+              startChanging(index, -1);
+            }}
+            onPressOut={() => {
+              setIsHolding(false);
+              stopChanging();
+            }}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
 
+          <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
+
+          <TouchableOpacity
+            onPress={() => {
+              if (!isHolding) {
+                changeLife(index, 1);
+              }
+            }}
+            onPressIn={() => {
+              setIsHolding(true);
+              startChanging(index, 1);
+            }}
+            onPressOut={() => {
+              setIsHolding(false);
+              stopChanging();
+            }}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.playerLabel}>Player {index + 1}</Text>
+      </>
+    );
+  };
+  
   const renderLayout = () => {
     switch (players) {
       case 1:
-        return renderPlayer(0);
+        return (
+          <View style={styles.singlePlayerContainer}>
+            <View style={styles.playerBox}>
+              {renderPlayerContents(0)}
+            </View>
+          </View>
+        );
       case 2:
-        return <View style={styles.row}>{[0, 1].map(renderPlayer)}</View>;
+        return (
+          <View style={styles.twoPlayerContainer}>
+            <View style={[
+              styles.playerBox, 
+              { transform: [{ rotate: '90deg' }] }
+            ]}>
+              {renderPlayerContents(0)}
+            </View>
+            <View style={[
+              styles.playerBox, 
+              { transform: [{ rotate: '-90deg' }] }
+            ]}>
+              {renderPlayerContents(1)}
+            </View>
+          </View>
+        );
       case 3:
         return (
-          <>
-            <View style={styles.row}>{[0, 1].map(renderPlayer)}</View>
-            <View style={styles.fullRow}>{renderPlayer(2)}</View>
-          </>
+          <View style={styles.threePlayerContainer}>
+            <View style={[styles.topRow, styles.flippedRow]}>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(0)}
+              </View>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(1)}
+              </View>
+            </View>
+            <View style={styles.bottomRow}>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(2)}
+              </View>
+            </View>
+          </View>
         );
       case 4:
-        return <View style={styles.grid}>{[0, 1, 2, 3].map(renderPlayer)}</View>;
+        return (
+          <View style={styles.fourPlayerContainer}>
+            <View style={[styles.topRow, styles.flippedRow]}>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(0)}
+              </View>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(1)}
+              </View>
+            </View>
+            <View style={styles.bottomRow}>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(2)}
+              </View>
+              <View style={styles.playerBox}>
+                {renderPlayerContents(3)}
+              </View>
+            </View>
+          </View>
+        );
       default:
         return null;
     }
@@ -85,35 +224,81 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'black',
     padding: 10,
   },
-  row: {
+  singlePlayerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  twoPlayerContainer: {
     flex: 1,
     flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  fullRow: {
+  threePlayerContainer: {
     flex: 1,
+    justifyContent: 'space-between',
   },
-  grid: {
+  fourPlayerContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  topRow: {
     flex: 1,
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  bottomRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  flippedRow: {
+    transform: [{ rotate: '180deg' }],
+  },
+  flippedPlayer: {
+    transform: [{ rotate: '-90deg' }],
   },
   playerBox: {
     flex: 1,
-    margin: 5,
-    backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
+    margin: 10,
+    backgroundColor: '#111',
     borderRadius: 15,
+    minHeight: 150,
+  },
+  lifeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   lifeText: {
     fontFamily: 'MiddleEarth',
     color: 'white',
-    fontSize: 20,
+    fontSize: 60,
+    minWidth: 80,
     textAlign: 'center',
+    marginHorizontal: 15,
+  },
+  playerLabel: {
+    color: 'white',
+    fontSize: 20,
+    marginTop: 10,
+  },
+  button: {
+    backgroundColor: '#333',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 30,
+    color: 'white',
   },
 });

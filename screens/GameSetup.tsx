@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/RootStackParamList';
 
@@ -62,7 +62,7 @@ export default function GameSetup() {
               startingLife: startingLife!,
             }
           )}
-          //disabled={!players || !startingLife}
+          disabled={!players || !startingLife}
         >
           <Text style={styles.buttonText}>Start Game</Text>
         </TouchableOpacity>
