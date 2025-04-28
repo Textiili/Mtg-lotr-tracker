@@ -48,7 +48,7 @@ export default function CameraScreen() {
       const cropWidth = 0.8 * photoWidth;
       const cropHeight = 0.08 * photoHeight;
 
-      const cropResult = await ImageManipulator.manipulateAsync(
+      const cropResult = await ImageManipulator.manipulateAsync(//TODO: Deprecated
         photo.uri,
         [
           {
