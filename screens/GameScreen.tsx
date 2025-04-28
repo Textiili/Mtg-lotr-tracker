@@ -51,7 +51,7 @@ export default function GameScreen({ route }: Props) {
   const TIMING = {
     initialDelay: 800,
     repeatInterval: 200,  
-    acceleration: 0.85,  
+    acceleration: 0.90,  
     maxSpeed: 50          
   };
   
@@ -257,9 +257,6 @@ const styles = StyleSheet.create({
   },
   flippedRow: {
     transform: [{ rotate: '180deg' }],
-  },
-  flippedPlayer: {
-    transform: [{ rotate: '-90deg' }],
   },
   playerBox: {
     flex: 1,
