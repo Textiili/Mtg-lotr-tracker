@@ -1,32 +1,43 @@
 import React, { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator, Alert, Dimensions } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, SafeAreaView, Image, ActivityIndicator, Alert, ScrollView, View } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import * as ImageManipulator from 'expo-image-manipulator';
 
-type ScryfallCard = {//TODO: Move types to types folder!
+type ScryfallCard = {
   name: string;
-  oracle_text: string;
   type_line: string;
-  mana_cost?: string;
+  prices: {
+    usd?: string;
+    usd_foil?: string;
+    usd_etched?: string;
+  };
   image_uris?: {
     normal?: string;
     large?: string;
   };
+  rulings_uri?: string;
+};
+
+type ScryfallRuling = {
+  object: 'ruling';
+  oracle_id: string;
+  source: string;
+  published_at: string;
+  comment: string;
 };
 
 type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR';
 
-const { width, height } = Dimensions.get('window');
-
-export default function CameraScreen() {
+export default function ScannerScreen() {
   const cameraRef = useRef<CameraView>(null);
   
   const [facing] = useState<CameraType>('back');
-
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('READY');
+
   const [cardData, setCardData] = useState<ScryfallCard | null>(null);
-  const [editedImage, setEditedImage] = useState<string | null>(null);
+  const [rulings, setRulings] = useState<ScryfallRuling[]>([]);
+
+  const [image, setImage] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string | null>(null);
 
   const handleScanCard = async () => {
@@ -36,7 +47,6 @@ export default function CameraScreen() {
     
     try {
       const photo = await capturePhoto();
-      //TODO: Don't analyzeImage before checking it came out right!
       await analyzeImage(photo);
       setScanState('SCANNED');
     } catch (error) {
@@ -53,45 +63,15 @@ export default function CameraScreen() {
       skipProcessing: false,
       exif: false,
       quality: 0.8,
+      base64: true,
     });
 
     if (!photo) {
       throw new Error('Failed to capture image');
     }
 
-    const photoWidth = photo.width;
-    const photoHeight = photo.height;
-
-    const cropX = 0.1 * photoWidth;
-    const cropY = 0.15 * photoHeight;
-    const cropWidth = 0.8 * photoWidth;
-    const cropHeight = 0.08 * photoHeight;
-
-    const resultImage = await ImageManipulator.manipulateAsync(//TODO: Deprecated
-      photo.uri,
-      [
-        {
-          crop: {
-            originX: cropX,
-            originY: cropY,
-            width: cropWidth,
-            height: cropHeight,
-          }
-        }
-      ],
-      { 
-        compress: 0.7, 
-        format: ImageManipulator.SaveFormat.JPEG,
-        base64: true
-      }
-    );
-
-    if (!resultImage) {
-      throw new Error('Failed to edit image!');
-    }
-
-    setEditedImage(resultImage.uri);
-    return resultImage.base64;
+    setImage(photo.uri);
+    return photo.base64;
   };
 
   const analyzeImage = async (imageBase64: string | undefined) => {
@@ -100,7 +80,7 @@ export default function CameraScreen() {
     }
 
     try {
-      const response = await fetch(//TODO: Search for better/safer way to assign api key!
+      const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_API_KEY}`,
         {
           method: 'POST',
@@ -133,36 +113,43 @@ export default function CameraScreen() {
     try {
       const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}`);
       const data = await response.json();
-      
+  
       if (data.object === 'error') {
         throw new Error(data.details || 'Card not found');
       }
-      
+  
       setCardData(data);
+  
+      if (data.rulings_uri) {
+        const rulingsRes = await fetch(data.rulings_uri);
+        const rulingsData = await rulingsRes.json();
+        setRulings(rulingsData.data);
+      }
     } catch (error) {
       console.error('Card search error:', error);
       throw new Error('Failed to find card');
     }
   };
+  
 
   const resetScanner = () => {
     setScanState('READY');
     setCardData(null);
-    setEditedImage(null);
+    setImage(null);
     setExtractedText(null);
   };
 
   const renderPermissionRequest = () => (
-    <View style={styles.container}>
-      <Text style={styles.message}>We need camera permission to scan cards</Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.message}>Camera permission needed to scan cards!</Text>
       <Button onPress={requestPermission} title="Grant Permission" />
-    </View>
+    </SafeAreaView>
   );
 
   const renderDebugView = () => (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image 
-        source={{ uri: editedImage! }}
+        source={{ uri: image! }}
         style={styles.cardImage}
         resizeMode="contain"
       />
@@ -172,44 +159,65 @@ export default function CameraScreen() {
           <Text style={styles.extractedTextContent}>{extractedText}</Text>
         </View>
       )}
-      <Button title="Scan Another Card" onPress={resetScanner} />
-    </View>
+      <View style={styles.bottomButtonContainer}>
+        <Button title="Scan Another Card" onPress={resetScanner} />
+      </View>
+    </SafeAreaView>
   );
 
   const renderCardResult = () => (
-    <View style={styles.container}>
-      {cardData?.image_uris?.normal && (
-        <Image 
-          source={{ uri: cardData.image_uris.normal }} 
-          style={styles.cardImage} 
-          resizeMode="contain"
-        />
-      )}
-      <View style={styles.cardInfo}>
-        <Text style={styles.cardName}>{cardData?.name}</Text>
-        <Text style={styles.cardType}>{cardData?.type_line}</Text>
-        {cardData?.mana_cost && (
-          <Text style={styles.cardMana}>Cost: {cardData.mana_cost}</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.cardHeader}>
+          <Text style={styles.cardName}>{cardData?.name}</Text>
+          <Text style={styles.cardType}>{cardData?.type_line}</Text>
+          
+          <View style={styles.infoContainer}>
+            {cardData?.image_uris?.normal && (
+              <Image 
+                source={{ uri: cardData.image_uris.normal }} 
+                style={styles.cardImage} 
+                resizeMode="contain"
+              />
+            )}
+            <View style={styles.priceTextContainer}>
+              {cardData?.prices?.usd && (
+                <Text style={styles.priceText}>Standard: ${cardData.prices.usd}</Text>
+              )}
+              {cardData?.prices?.usd_foil && (
+                <Text style={styles.priceText}>Foil: ${cardData.prices.usd_foil}</Text>
+              )}
+              {cardData?.prices?.usd_etched && (
+                <Text style={styles.priceText}>Etched: ${cardData.prices.usd_etched}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {rulings.length > 0 && (
+          <View style={styles.rulesContainer}>
+            {rulings.map((ruling, index) => (
+              <Text key={index} style={[styles.cardText, { marginBottom: 20}]}>
+                - {ruling.comment} ({ruling.published_at})
+              </Text>
+            ))}
+          </View>
         )}
-        <Text style={styles.cardText}>{cardData?.oracle_text}</Text>
+      </ScrollView>
+      
+      <View style={styles.bottomButtonContainer}>
+        <Button title="Scan Another Card" onPress={resetScanner} />
       </View>
-      <Button title="Scan Another Card" onPress={resetScanner} />
-    </View>
+    </SafeAreaView>
   );
 
   const renderCameraView = () => (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <CameraView 
         style={styles.camera} 
         facing={facing}
         ref={cameraRef}
       >
-        <View style={styles.overlay}>
-          <View style={styles.scanArea}>
-            <Text style={styles.scanText}>Align card name here</Text>
-          </View>
-        </View>
-        
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={[
@@ -227,12 +235,12 @@ export default function CameraScreen() {
           </TouchableOpacity>
         </View>
       </CameraView>
-    </View>
+    </SafeAreaView>
   );
 
-  if (!permission) return <View />;
+  if (!permission) return <SafeAreaView />;
   if (!permission.granted) return renderPermissionRequest();
-  if (editedImage && scanState !== 'SCANNED') return renderDebugView();
+  if (image && scanState !== 'SCANNED') return renderDebugView();
   if (scanState === 'SCANNED' && cardData) return renderCardResult();
   return renderCameraView();
 }
@@ -240,7 +248,7 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: 'black',
   },
   message: {
     textAlign: 'center',
@@ -251,37 +259,16 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  scanArea: {
-    marginTop: height * 0.15,
-    width: width * 0.8,
-    height: height * 0.08,
-    borderWidth: 2,
-    borderColor: 'black',
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanText: {
-    color: 'black',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   buttonContainer: {
     flex: 1,
     flexDirection: 'row',
     backgroundColor: 'transparent',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'flex-end',
     padding: 20,
   },
   scanButton: {
-    padding: 15,
+    padding: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 10,
     minWidth: 120,
@@ -291,38 +278,61 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontFamily: 'MiddleEarth',
     color: 'white',
   },
-  cardImage: {
-    width: '100%',
-    height: 300,
-    marginTop: 20,
-  },
-  cardInfo: {
+  cardHeader: {
     padding: 20,
-    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   cardName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'MiddleEarth',
     color: 'white',
-    marginBottom: 10,
+    marginBottom: 5,
+    alignSelf: 'center',
   },
   cardType: {
-    fontSize: 18,
-    fontStyle: 'italic',
+    fontSize: 14,
+    fontFamily: 'MiddleEarth',
     color: 'white',
     marginBottom: 10,
+    alignSelf: 'center',
   },
-  cardMana: {
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardImage: {
+    width: '50%',
+    height: 200,
+  },
+  priceTextContainer: {
+    flexDirection: 'column',
+  },
+  priceText: {
     fontSize: 16,
+    fontFamily: 'MiddleEarth',
+    color: 'gold',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 80, 
+  },
+  rulesContainer: {
+    padding: 20,
+  },
+  rulesTitle: {
+    fontSize: 18,
+    fontFamily: 'MiddleEarth',
     color: 'white',
     marginBottom: 10,
   },
   cardText: {
     fontSize: 16,
+    fontFamily: 'MiddleEarth',
     color: 'white',
     lineHeight: 24,
   },
@@ -339,5 +349,13 @@ const styles = StyleSheet.create({
   },
   extractedTextContent: {
     color: 'white',
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 20,
+    right: 20,
+    backgroundColor: 'black',
+    paddingVertical: 10,
   },
 });

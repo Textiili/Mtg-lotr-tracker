@@ -6,14 +6,13 @@ import { RootStackParamList } from './types/RootStackParamList';
 
 import GameSetup from './screens/GameSetup';
 import GameScreen from "./screens/GameScreen";
-import CameraScreen from "./screens/CameraScreen";
+import ScannerScreen from "./screens/ScannerScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
 
   const [fontsLoaded, fontError] = useFonts({
-    'Hobbiton': require('./assets/fonts/HobbitonBrushhand.ttf'),
     'MiddleEarth': require('./assets/fonts/MiddleEarth.ttf'),
   });
 
@@ -27,10 +26,10 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="CameraScreen">
+      <Stack.Navigator initialRouteName="ScannerScreen">
         <Stack.Screen name="GameSetup" component={GameSetup} options={{headerShown: false}} />
         <Stack.Screen name="GameScreen" component={GameScreen} options={{headerShown: false}} />
-        <Stack.Screen name="CameraScreen" component={CameraScreen} options={{headerShown: false}} />
+        <Stack.Screen name="ScannerScreen" component={ScannerScreen} options={{headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

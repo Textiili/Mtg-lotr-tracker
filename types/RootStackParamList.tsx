@@ -4,5 +4,5 @@ export type RootStackParamList = {
     players: number;
     startingLife: number;
   };
-  CameraScreen: undefined;
+  ScannerScreen: undefined;
 };
