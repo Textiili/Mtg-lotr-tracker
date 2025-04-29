@@ -1,7 +1,7 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator, Alert, Dimensions } from 'react-native';
-import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImageManipulator from 'expo-image-manipulator'; //TODO:
 
 type ScryfallCard = {
   name: string;
@@ -21,7 +21,7 @@ export default function CameraScreen() {
   const [cardData, setCardData] = useState<ScryfallCard | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [croppedImageUri, setCroppedImageUri] = useState<string | null>(null);  // NEW
+  const [imageUri, setImageUri] = useState<string | null>(null); 
   const cameraRef = useRef<CameraView>(null);
 
   const scanCard = async () => {
@@ -67,10 +67,8 @@ export default function CameraScreen() {
         throw new Error('Failed to crop image');
       }
 
-      setCroppedImageUri(cropResult.uri); 
-
+      setImageUri(cropResult.uri);
       //TODO: OCR
-
 
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
@@ -79,12 +77,12 @@ export default function CameraScreen() {
       setLoading(false);
     }
   };
-
+  
   const resetScanner = () => {
     setScanned(false);
     setCardData(null);
     setSearchText('');
-    setCroppedImageUri(null);
+    setImageUri(null);
   };
 
   if (!permission) {
@@ -100,11 +98,11 @@ export default function CameraScreen() {
     );
   }
 
-  if (croppedImageUri) { 
+  if (imageUri) { 
     return (//NOTE: Debug view for cropped image
       <View style={styles.container}>
         <Image 
-          source={{ uri: croppedImageUri }}
+          source={{ uri: imageUri }}
           style={styles.cardImage}
           resizeMode="contain"
         />
