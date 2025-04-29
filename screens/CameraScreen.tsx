@@ -1,9 +1,9 @@
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator, Alert, Dimensions } from 'react-native';
-import * as ImageManipulator from 'expo-image-manipulator'; //TODO:
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
 
-type ScryfallCard = {
+type ScryfallCard = {//TODO: Move types to types folder!
   name: string;
   oracle_text: string;
   type_line: string;
@@ -14,127 +14,190 @@ type ScryfallCard = {
   };
 };
 
+type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR';
+
+const { width, height } = Dimensions.get('window');
+
 export default function CameraScreen() {
-  const [facing] = useState<CameraType>('back');
-  const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false);
-  const [cardData, setCardData] = useState<ScryfallCard | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [imageUri, setImageUri] = useState<string | null>(null); 
   const cameraRef = useRef<CameraView>(null);
+  
+  const [facing] = useState<CameraType>('back');
 
-  const scanCard = async () => {
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanState, setScanState] = useState<ScanState>('READY');
+  const [cardData, setCardData] = useState<ScryfallCard | null>(null);
+  const [editedImage, setEditedImage] = useState<string | null>(null);
+  const [extractedText, setExtractedText] = useState<string | null>(null);
+
+  const handleScanCard = async () => {
     if (!cameraRef.current) return;
-
+    
+    setScanState('SCANNING');
+    
     try {
-      setLoading(true);
-
-      const photo = await cameraRef.current.takePictureAsync({
-        skipProcessing: false,
-        exif: false,
-        quality: 0.8,
-      });
-
-      if (!photo || !photo.uri) {
-        throw new Error('Failed to capture image');
-      }
-
-      const photoWidth = photo.width;
-      const photoHeight = photo.height;
-
-      const cropX = 0.1 * photoWidth;
-      const cropY = 0.15 * photoHeight;
-      const cropWidth = 0.8 * photoWidth;
-      const cropHeight = 0.08 * photoHeight;
-
-      const cropResult = await ImageManipulator.manipulateAsync(//TODO: Deprecated
-        photo.uri,
-        [
-          {
-            crop: {
-              originX: cropX,
-              originY: cropY,
-              width: cropWidth,
-              height: cropHeight,
-            }
-          }
-        ],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-      );
-
-      if (!cropResult || !cropResult.uri) {
-        throw new Error('Failed to crop image');
-      }
-
-      setImageUri(cropResult.uri);
-      //TODO: OCR
-
+      const photo = await capturePhoto();
+      //TODO: Don't analyzeImage before checking it came out right!
+      await analyzeImage(photo);
+      setScanState('SCANNED');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
       console.error(error);
-    } finally {
-      setLoading(false);
+      setScanState('ERROR');
     }
   };
-  
-  const resetScanner = () => {
-    setScanned(false);
-    setCardData(null);
-    setSearchText('');
-    setImageUri(null);
+
+  const capturePhoto = async () => {
+    if (!cameraRef.current) throw new Error('Camera not ready');
+    
+    const photo = await cameraRef.current.takePictureAsync({
+      skipProcessing: false,
+      exif: false,
+      quality: 0.8,
+    });
+
+    if (!photo) {
+      throw new Error('Failed to capture image');
+    }
+
+    const photoWidth = photo.width;
+    const photoHeight = photo.height;
+
+    const cropX = 0.1 * photoWidth;
+    const cropY = 0.15 * photoHeight;
+    const cropWidth = 0.8 * photoWidth;
+    const cropHeight = 0.08 * photoHeight;
+
+    const resultImage = await ImageManipulator.manipulateAsync(//TODO: Deprecated
+      photo.uri,
+      [
+        {
+          crop: {
+            originX: cropX,
+            originY: cropY,
+            width: cropWidth,
+            height: cropHeight,
+          }
+        }
+      ],
+      { 
+        compress: 0.7, 
+        format: ImageManipulator.SaveFormat.JPEG,
+        base64: true
+      }
+    );
+
+    if (!resultImage) {
+      throw new Error('Failed to edit image!');
+    }
+
+    setEditedImage(resultImage.uri);
+    return resultImage.base64;
   };
 
-  if (!permission) {
-    return <View />;
-  }
+  const analyzeImage = async (imageBase64: string | undefined) => {
+    if (!imageBase64) {
+      throw new Error('No image data to analyze');
+    }
 
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>We need camera permission to scan cards</Text>
-        <Button onPress={requestPermission} title="Grant Permission" />
-      </View>
-    );
-  }
+    try {
+      const response = await fetch(//TODO: Search for better/safer way to assign api key!
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+                { text: 'What is the name of the trading card? Answer only with the name.' }
+              ]
+            }]
+          })
+        }
+      );
 
-  if (imageUri) { 
-    return (//NOTE: Debug view for cropped image
-      <View style={styles.container}>
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!text) throw new Error('No text found in response');
+      
+      setExtractedText(text);
+      await searchCard(text);
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      throw new Error('Failed to analyze image');
+    }
+  };
+
+  const searchCard = async (cardName: string) => {
+    try {
+      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}`);
+      const data = await response.json();
+      
+      if (data.object === 'error') {
+        throw new Error(data.details || 'Card not found');
+      }
+      
+      setCardData(data);
+    } catch (error) {
+      console.error('Card search error:', error);
+      throw new Error('Failed to find card');
+    }
+  };
+
+  const resetScanner = () => {
+    setScanState('READY');
+    setCardData(null);
+    setEditedImage(null);
+    setExtractedText(null);
+  };
+
+  const renderPermissionRequest = () => (
+    <View style={styles.container}>
+      <Text style={styles.message}>We need camera permission to scan cards</Text>
+      <Button onPress={requestPermission} title="Grant Permission" />
+    </View>
+  );
+
+  const renderDebugView = () => (
+    <View style={styles.container}>
+      <Image 
+        source={{ uri: editedImage! }}
+        style={styles.cardImage}
+        resizeMode="contain"
+      />
+      {extractedText && (
+        <View style={styles.textContainer}>
+          <Text style={styles.extractedText}>Extracted Text:</Text>
+          <Text style={styles.extractedTextContent}>{extractedText}</Text>
+        </View>
+      )}
+      <Button title="Scan Another Card" onPress={resetScanner} />
+    </View>
+  );
+
+  const renderCardResult = () => (
+    <View style={styles.container}>
+      {cardData?.image_uris?.normal && (
         <Image 
-          source={{ uri: imageUri }}
-          style={styles.cardImage}
+          source={{ uri: cardData.image_uris.normal }} 
+          style={styles.cardImage} 
           resizeMode="contain"
         />
-        <Button title="Scan Another Card" onPress={resetScanner} />
-      </View>
-    );
-  }
-
-  if (scanned && cardData) {
-    return (
-      <View style={styles.container}>
-        {cardData.image_uris?.normal && (
-          <Image 
-            source={{ uri: cardData.image_uris.normal }} 
-            style={styles.cardImage} 
-            resizeMode="contain"
-          />
+      )}
+      <View style={styles.cardInfo}>
+        <Text style={styles.cardName}>{cardData?.name}</Text>
+        <Text style={styles.cardType}>{cardData?.type_line}</Text>
+        {cardData?.mana_cost && (
+          <Text style={styles.cardMana}>Cost: {cardData.mana_cost}</Text>
         )}
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardName}>{cardData.name}</Text>
-          <Text style={styles.cardType}>{cardData.type_line}</Text>
-          {cardData.mana_cost && (
-            <Text style={styles.cardMana}>Cost: {cardData.mana_cost}</Text>
-          )}
-          <Text style={styles.cardText}>{cardData.oracle_text}</Text>
-        </View>
-        <Button title="Scan Another Card" onPress={resetScanner} />
+        <Text style={styles.cardText}>{cardData?.oracle_text}</Text>
       </View>
-    );
-  }
+      <Button title="Scan Another Card" onPress={resetScanner} />
+    </View>
+  );
 
-  return (
+  const renderCameraView = () => (
     <View style={styles.container}>
       <CameraView 
         style={styles.camera} 
@@ -149,11 +212,14 @@ export default function CameraScreen() {
         
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
-            style={styles.scanButton} 
-            onPress={scanCard}
-            disabled={loading}
+            style={[
+              styles.scanButton,
+              scanState === 'SCANNING' && styles.scanButtonDisabled
+            ]} 
+            onPress={handleScanCard}
+            disabled={scanState === 'SCANNING'}
           >
-            {loading ? (
+            {scanState === 'SCANNING' ? (
               <ActivityIndicator color="white" />
             ) : (
               <Text style={styles.buttonText}>Scan Card</Text>
@@ -163,9 +229,13 @@ export default function CameraScreen() {
       </CameraView>
     </View>
   );
-}
 
-const { width, height } = Dimensions.get('window');
+  if (!permission) return <View />;
+  if (!permission.granted) return renderPermissionRequest();
+  if (editedImage && scanState !== 'SCANNED') return renderDebugView();
+  if (scanState === 'SCANNED' && cardData) return renderCardResult();
+  return renderCameraView();
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -182,11 +252,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
@@ -220,6 +286,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minWidth: 120,
     alignItems: 'center',
+  },
+  scanButtonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     fontSize: 16,
@@ -256,5 +325,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
     lineHeight: 24,
+  },
+  textContainer: {
+    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    margin: 20,
+    borderRadius: 8,
+  },
+  extractedText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  extractedTextContent: {
+    color: 'white',
   },
 });
