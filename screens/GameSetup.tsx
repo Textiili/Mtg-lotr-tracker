@@ -3,10 +3,10 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { Text, SafeAreaView, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/params';
+import { ScreenParams } from '../types/params';
 
 export default function GameSetup() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'GameSetup'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<ScreenParams, 'GameSetup'>>();
 
   const [players, setPlayers] = useState<number | null>(null);
   const [startingLife, setStartingLife] = useState<number | null>(null);

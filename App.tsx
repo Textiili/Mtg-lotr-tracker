@@ -5,13 +5,13 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { RootStackParamList } from './types/params';
+import { ScreenParams } from './types/params';
 
 import GameSetup from './screens/GameSetup';
 import GameScreen from "./screens/GameScreen";
 import ScannerScreen from "./screens/ScannerScreen";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<ScreenParams>();
 
 export default function App() {
 

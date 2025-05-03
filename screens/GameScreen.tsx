@@ -1,24 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { RouteProp } from '@react-navigation/native';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { RootStackParamList } from '../types/params';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { ScreenParams } from '../types/params';
+import ScanButton from '../components/ScanButton';
 
-type GameScreenRouteProp = RouteProp<RootStackParamList, 'GameScreen'>;
+type GameScreenRouteProp = RouteProp<ScreenParams, 'GameScreen'>;
 
 type Props = {
   route: GameScreenRouteProp;
 };
 
 export default function GameScreen({ route }: Props) {
-  if (!route?.params || !route.params.players || !route.params.startingLife) {
-    console.error(`route.params: ${JSON.stringify(route?.params)}`);
-    return (//TODO: Make separate ErrorScreen
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error: Missing game setup data</Text>
-      </View>
-    );
-  }
+  // if (!route?.params || !route.params.players || !route.params.startingLife) {
+  //   console.error(`route.params: ${JSON.stringify(route?.params)}`);
+  //   return (
+  //     <View style={styles.errorContainer}>
+  //       <Text style={styles.errorText}>Error: Missing game setup data</Text>
+  //     </View>
+  //   );
+  // }
 
   const { players } = route.params;
   const [lifeTotals, setLifeTotals] = useState<number[]>(() =>
@@ -105,7 +106,6 @@ export default function GameScreen({ route }: Props) {
             <Text style={styles.buttonText}>+</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.playerLabel}>Player {index + 1}</Text>
       </>
     );
   };
@@ -183,6 +183,7 @@ export default function GameScreen({ route }: Props) {
 
   return (
     <View style={styles.container}>
+      <ScanButton playerLayout={players} />
       {renderLayout()}
     </View>
   );
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: 'white',
     padding: 10,
   },
   singlePlayerContainer: {
@@ -259,11 +260,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 15,
   },
-  playerLabel: {
-    color: 'white',
-    fontSize: 20,
-    marginTop: 10,
-  },
   button: {
     backgroundColor: '#333',
     width: 60,
@@ -273,6 +269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
+    fontFamily: 'MiddleEarth',
     fontSize: 30,
     color: 'white',
   },

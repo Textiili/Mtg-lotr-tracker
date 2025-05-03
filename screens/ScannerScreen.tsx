@@ -1,22 +1,34 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { Button, StyleSheet, Text, TouchableOpacity, SafeAreaView, Image, ActivityIndicator, Alert, ScrollView, View } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView, CameraType } from 'expo-camera';
 import { ScryfallCard, ScryfallRuling } from '../types/scryfall';
 
 type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR';
 
 export default function ScannerScreen() {
   const cameraRef = useRef<CameraView>(null);
-  
   const [facing] = useState<CameraType>('back');
-  const [permission, requestPermission] = useCameraPermissions();
+
   const [scanState, setScanState] = useState<ScanState>('READY');
+
+  const [image, setImage] = useState<string | null>(null);
+  const [extractedText, setExtractedText] = useState<string | null>(null);
 
   const [cardData, setCardData] = useState<ScryfallCard | null>(null);
   const [rulings, setRulings] = useState<ScryfallRuling[]>([]);
 
-  const [image, setImage] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState<string | null>(null);
+  useEffect(() => {
+      const lockOrientation = async () => {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      };
+      
+      lockOrientation();
+      
+      return () => {
+        ScreenOrientation.unlockAsync();
+      };
+    }, []);
 
   const handleScanCard = async () => {
     if (!cameraRef.current) return;
@@ -120,13 +132,6 @@ export default function ScannerScreen() {
     setExtractedText(null);
   };
 
-  const renderPermissionRequest = () => (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.message}>Camera permission needed to scan cards!</Text>
-      <Button onPress={requestPermission} title="Grant Permission" />
-    </SafeAreaView>
-  );
-
   const renderDebugView = () => (
     <SafeAreaView style={styles.container}>
       <Image 
@@ -152,13 +157,13 @@ export default function ScannerScreen() {
           <Text style={styles.header}>CARD INFO:</Text>
           
           <View style={styles.information}>
-            {cardData?.image_uris?.normal && (
-              <Image 
-                source={{ uri: cardData.image_uris.normal }} 
-                style={styles.cardImage} 
-                resizeMode="contain"
-              />
-            )}
+              {cardData?.image_uris?.normal && (
+                <Image 
+                  source={{ uri: cardData.image_uris.normal }} 
+                  style={styles.cardImage} 
+                  resizeMode="cover"
+                />
+              )}
             <View style={styles.priceTextContainer}>
               {cardData?.prices?.eur && (
                 <Text style={styles.priceText}>Standard: {cardData.prices.eur} €</Text>
@@ -225,7 +230,6 @@ export default function ScannerScreen() {
     </SafeAreaView>
   );
 
-  if (!permission?.granted) return renderPermissionRequest();
   if (image && scanState !== 'SCANNED') return renderDebugView();
   if (scanState === 'SCANNED' && cardData) return renderCardResult();
   return renderCameraView();
@@ -235,13 +239,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
-  },
-  message: {
-    textAlign: 'center',
-    color: 'white',
-    marginBottom: 20,
-    fontSize: 16,
-    marginTop: 20,
   },
   camera: {
     flex: 1,
@@ -292,10 +289,13 @@ const styles = StyleSheet.create({
   information: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-evenly'
   },
   cardImage: {
-    width: '50%',
+    width: 150,
     height: 200,
+    borderRadius: 5,
+    overflow: 'hidden',
   },
   priceTextContainer: {
     flexDirection: 'column',

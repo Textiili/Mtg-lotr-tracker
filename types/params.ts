@@ -1,4 +1,4 @@
-export type RootStackParamList = {
+export type ScreenParams = {
   GameSetup: undefined;
   GameScreen: {
     players: number;
