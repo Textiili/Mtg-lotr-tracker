@@ -49,6 +49,7 @@ export default function ScanButton({ playerLayout }: ScanButtonProps) {
 
 const styles = StyleSheet.create({
   scanButton: {
+    zIndex: 100,
     backgroundColor: 'white',
     borderRadius: 15,
     height: 100,

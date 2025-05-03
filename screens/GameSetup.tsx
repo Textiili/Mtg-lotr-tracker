@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Text, SafeAreaView, View, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenParams } from '../types/params';
 
@@ -11,17 +11,21 @@ export default function GameSetup() {
   const [players, setPlayers] = useState<number | null>(null);
   const [startingLife, setStartingLife] = useState<number | null>(null);
 
-  useEffect(() => {
-    const lockOrientation = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-    };
-    
-    lockOrientation();
-    
-    return () => {
-      ScreenOrientation.unlockAsync();
-    };
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const setPortraitOrientation = async () => {
+        try {
+          await ScreenOrientation.unlockAsync();
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+          console.log('Portrait orientation set');
+        } catch (error) {
+          console.error('Failed to set portrait orientation:', error);
+        }
+      };
+
+      setPortraitOrientation();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

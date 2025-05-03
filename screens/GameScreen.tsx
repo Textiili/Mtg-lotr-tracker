@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { RouteProp } from '@react-navigation/native';
+import React, { useState, useRef } from 'react';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ScreenParams } from '../types/params';
 import ScanButton from '../components/ScanButton';
 
@@ -28,18 +28,22 @@ export default function GameScreen({ route }: Props) {
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      const setLandscapeOrientation = async () => {
+        try {
+          await ScreenOrientation.unlockAsync();
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+          console.log('Landscape orientation set');
+        } catch (error) {
+          console.error('Failed to set landscape orientation:', error);
+        }
+      };
 
-  useEffect(() => {
-    const lockOrientation = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-    };
-    
-    lockOrientation();
-    
-    return () => {
-      ScreenOrientation.unlockAsync();
-    };
-  }, []);
+      setLandscapeOrientation();
+    }, [])
+  );
 
   const changeLife = (index: number, delta: number) => {
     setLifeTotals(prev => {
