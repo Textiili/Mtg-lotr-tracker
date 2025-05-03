@@ -1,8 +1,9 @@
 import { View, ActivityIndicator } from "react-native";
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { RootStackParamList } from './types/RootStackParamList';
+import { RootStackParamList } from './types/params';
 
 import GameSetup from './screens/GameSetup';
 import GameScreen from "./screens/GameScreen";
@@ -26,7 +27,8 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ScannerScreen">
+      <StatusBar hidden={true}/>
+      <Stack.Navigator initialRouteName="GameSetup">
         <Stack.Screen name="GameSetup" component={GameSetup} options={{headerShown: false}} />
         <Stack.Screen name="GameScreen" component={GameScreen} options={{headerShown: false}} />
         <Stack.Screen name="ScannerScreen" component={ScannerScreen} options={{headerShown: false}} />

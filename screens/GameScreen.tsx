@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { RouteProp } from '@react-navigation/native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { RootStackParamList } from '../types/RootStackParamList';
+import { RootStackParamList } from '../types/params';
 
 type GameScreenRouteProp = RouteProp<RootStackParamList, 'GameScreen'>;
 

@@ -1,7 +1,6 @@
 node_modules/
 
 assets/images/*
-assets/fonts/*
 
 .expo/
 dist/

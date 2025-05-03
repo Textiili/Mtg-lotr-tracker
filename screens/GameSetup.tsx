@@ -3,7 +3,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/RootStackParamList';
+import { RootStackParamList } from '../types/params';
 
 export default function GameSetup() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'GameSetup'>>();

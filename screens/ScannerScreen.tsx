@@ -1,29 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, SafeAreaView, Image, ActivityIndicator, Alert, ScrollView, View } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-
-type ScryfallCard = {
-  name: string;
-  type_line: string;
-  prices: {
-    usd?: string;
-    usd_foil?: string;
-    usd_etched?: string;
-  };
-  image_uris?: {
-    normal?: string;
-    large?: string;
-  };
-  rulings_uri?: string;
-};
-
-type ScryfallRuling = {
-  object: 'ruling';
-  oracle_id: string;
-  source: string;
-  published_at: string;
-  comment: string;
-};
+import { ScryfallCard, ScryfallRuling } from '../types/scryfall';
 
 type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR';
 
@@ -79,8 +57,12 @@ export default function ScannerScreen() {
       throw new Error('No image data to analyze');
     }
 
+    if (!process.env.EXPO_PUBLIC_API_KEY) {
+      throw new Error('Api key is missing!');
+    }
+
     try {
-      const response = await fetch(
+      const response = await fetch(//TODO: API_KEY
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_API_KEY}`,
         {
           method: 'POST',
@@ -131,7 +113,6 @@ export default function ScannerScreen() {
     }
   };
   
-
   const resetScanner = () => {
     setScanState('READY');
     setCardData(null);
@@ -167,11 +148,10 @@ export default function ScannerScreen() {
 
   const renderCardResult = () => (
     <SafeAreaView style={styles.container}>
-      <View style={styles.cardHeader}>
-          <Text style={styles.cardName}>{cardData?.name}</Text>
-          <Text style={styles.cardType}>{cardData?.type_line}</Text>
+      <View style={styles.infoContainer}>
+          <Text style={styles.header}>CARD INFO:</Text>
           
-          <View style={styles.infoContainer}>
+          <View style={styles.information}>
             {cardData?.image_uris?.normal && (
               <Image 
                 source={{ uri: cardData.image_uris.normal }} 
@@ -180,27 +160,34 @@ export default function ScannerScreen() {
               />
             )}
             <View style={styles.priceTextContainer}>
+              {cardData?.prices?.eur && (
+                <Text style={styles.priceText}>Standard: {cardData.prices.eur} €</Text>
+              )}
+              {cardData?.prices?.eur_foil && (
+                <Text style={styles.priceText}>Foil: {cardData.prices.eur_foil} €</Text>
+              )}
               {cardData?.prices?.usd && (
-                <Text style={styles.priceText}>Standard: ${cardData.prices.usd}</Text>
+                <Text style={styles.priceText}>Standard: {cardData.prices.usd} $</Text>
               )}
-              {cardData?.prices?.usd_foil && (
-                <Text style={styles.priceText}>Foil: ${cardData.prices.usd_foil}</Text>
-              )}
-              {cardData?.prices?.usd_etched && (
-                <Text style={styles.priceText}>Etched: ${cardData.prices.usd_etched}</Text>
+              {cardData?.prices?.eur_foil && (
+                <Text style={styles.priceText}>Foil: {cardData.prices.usd_foil} $</Text>
               )}
             </View>
           </View>
         </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {rulings.length > 0 && (
+        {rulings.length > 0 ? (
           <View style={styles.rulesContainer}>
             {rulings.map((ruling, index) => (
               <Text key={index} style={[styles.cardText, { marginBottom: 20}]}>
                 - {ruling.comment} ({ruling.published_at})
               </Text>
             ))}
+          </View>
+          ) : (
+          <View style={styles.rulesContainer}>
+            <Text style={styles.noRulesText}>No additional rules found</Text>
           </View>
         )}
       </ScrollView>
@@ -238,8 +225,7 @@ export default function ScannerScreen() {
     </SafeAreaView>
   );
 
-  if (!permission) return <SafeAreaView />;
-  if (!permission.granted) return renderPermissionRequest();
+  if (!permission?.granted) return renderPermissionRequest();
   if (image && scanState !== 'SCANNED') return renderDebugView();
   if (scanState === 'SCANNED' && cardData) return renderCardResult();
   return renderCameraView();
@@ -255,6 +241,7 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 20,
     fontSize: 16,
+    marginTop: 20,
   },
   camera: {
     flex: 1,
@@ -280,18 +267,19 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 20,
     fontFamily: 'MiddleEarth',
-    color: 'white',
+    color: 'black',
   },
-  cardHeader: {
+  infoContainer: {
+    marginTop: 20,
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
-  cardName: {
+  header: {
+    marginBottom: 20,
     fontSize: 24,
     fontFamily: 'MiddleEarth',
     color: 'white',
-    marginBottom: 5,
     alignSelf: 'center',
   },
   cardType: {
@@ -301,7 +289,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: 'center',
   },
-  infoContainer: {
+  information: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -315,7 +303,7 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 16,
     fontFamily: 'MiddleEarth',
-    color: 'gold',
+    color: 'white',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -335,6 +323,12 @@ const styles = StyleSheet.create({
     fontFamily: 'MiddleEarth',
     color: 'white',
     lineHeight: 24,
+  },
+  noRulesText: {
+    fontSize: 16,
+    fontFamily: 'MiddleEarth',
+    color: 'white',
+    textAlign: 'center',
   },
   textContainer: {
     padding: 20,
