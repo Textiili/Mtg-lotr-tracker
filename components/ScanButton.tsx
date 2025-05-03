@@ -39,7 +39,7 @@ export default function ScanButton({ playerLayout }: ScanButtonProps) {
       onPress={handlePress}
     >
       <Image
-        source={require('../assets/images/blackspeech.png')}
+        source={require('../assets/images/ring-inscription.png')}
         style={styles.buttonImage}
         resizeMode="contain"
       />

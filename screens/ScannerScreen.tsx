@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import * as ScreenOrientation from 'expo-screen-orientation';
 import { 
   Button, 
   StyleSheet, 
@@ -10,15 +9,17 @@ import {
   ScrollView, 
   View 
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { CameraView, CameraType } from 'expo-camera';
 import { ScryfallCard, ScryfallRuling } from '../types/scryfall';
+import { useScreenOrientation } from '../hooks/useScreenOrientation';
 
 type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR';
 
 export default function ScannerScreen() {
   const cameraRef = useRef<CameraView>(null);
   const [facing] = useState<CameraType>('back');
+
+  useScreenOrientation('portrait');
 
   const [scanState, setScanState] = useState<ScanState>('READY');
 
@@ -27,22 +28,6 @@ export default function ScannerScreen() {
 
   const [cardData, setCardData] = useState<ScryfallCard | null>(null);
   const [rulings, setRulings] = useState<ScryfallRuling[]>([]);
-  
-  useFocusEffect(
-    React.useCallback(() => {
-      const setPortraitOrientation = async () => {
-        try {
-          await ScreenOrientation.unlockAsync();
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-          console.log('Landscape orientation set');
-        } catch (error) {
-          console.error('Failed to set landscape orientation:', error);
-        }
-      };
-
-      setPortraitOrientation();
-    }, [])
-  );
 
   const handleScanCard = async () => {
     if (!cameraRef.current) return;
