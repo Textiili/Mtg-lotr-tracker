@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, SafeAreaView, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/params';
@@ -24,9 +24,9 @@ export default function GameSetup() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.section}>
-        <Text style={styles.header}>Players</Text>
+        <Text style={styles.header}>Set players:</Text>
         <View style={styles.buttonRow}>
           {['1', '2', '3', '4'].map((player, index) => (
             <TouchableOpacity
@@ -40,7 +40,7 @@ export default function GameSetup() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.header}>Starting Life</Text>
+        <Text style={styles.header}>Set starting life:</Text>
         <View style={styles.buttonRow}>
           {[25, 30, 40, 60].map((life) => (
             <TouchableOpacity
@@ -55,7 +55,7 @@ export default function GameSetup() {
 
       <View style={styles.section}>
         <TouchableOpacity
-          style={[styles.startButtonContainer, players && startingLife ? styles.enabledButton : styles.disabledButton]}
+          style={[styles.startGameButton, players && startingLife ? styles.enabledButton : styles.disabledButton]}
           onPress={() => navigation.navigate('GameScreen', 
             {
               players: players!,
@@ -67,7 +67,7 @@ export default function GameSetup() {
           <Text style={styles.buttonText}>Start Game</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -95,22 +95,22 @@ const styles = StyleSheet.create({
   button: {
     width: 70,
     height: 70,
-    backgroundColor: 'white',
+    backgroundColor: '#111',
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
   },
   selectedButton: {
-    backgroundColor: '#5c5c5c',
+    backgroundColor: 'white',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
     fontSize: 18,
-    color: 'black',
+    color: 'white',
   },
-  startButtonContainer: {
-    marginBottom: 30,
+  startGameButton: {
+    marginBottom: 100,
     width: 160,
     height: 80,
     borderRadius: 25,
@@ -119,9 +119,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   disabledButton: {
-    backgroundColor: '#5c5c5c', 
+    backgroundColor: 'black', 
   },
   enabledButton: {
-    backgroundColor: 'white', 
+    backgroundColor: '#111', 
   },
 });

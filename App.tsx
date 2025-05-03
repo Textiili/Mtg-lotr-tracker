@@ -1,5 +1,7 @@
-import { View, ActivityIndicator } from "react-native";
+import { useEffect } from "react";
 import { useFonts } from 'expo-font';
+import { View, ActivityIndicator, Platform } from "react-native";
+import * as NavigationBar from 'expo-navigation-bar';
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -17,6 +19,17 @@ export default function App() {
     'MiddleEarth': require('./assets/fonts/MiddleEarth.ttf'),
   });
 
+  useEffect(() => {
+    async function hideSystemBars() {
+      if (Platform.OS === 'android') {
+        await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setBackgroundColorAsync('transparent');
+      }
+    }
+    
+    hideSystemBars();
+  }, []);
+
   if (!fontsLoaded) {
     return(
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -24,7 +37,7 @@ export default function App() {
       </View>
     )
   }
-
+  
   return (
     <NavigationContainer>
       <StatusBar hidden={true}/>
