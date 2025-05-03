@@ -1,3 +1,4 @@
-﻿designer: JoannaVu
+﻿# License information
+designer: JoannaVu
 license: Freeware, Non-Commercial
 link: https://www.fontspace.com/middleearth-font-f28347
