@@ -49,15 +49,13 @@ export default function GameScreen({ route }: Props) {
   };
   
   const TIMING = {
-    initialDelay: 800,
-    repeatInterval: 200,  
+    initialDelay: 0,
+    repeatInterval: 500,  
     acceleration: 0.90,  
     maxSpeed: 50          
   };
   
-  const startChanging = (index: number, delta: number) => {
-    changeLife(index, delta);
-    
+  const startChangingByTen = (index: number, delta: number) => {
     let speed = TIMING.repeatInterval;
     
     timeoutRef.current = setTimeout(() => {
@@ -70,7 +68,7 @@ export default function GameScreen({ route }: Props) {
     }, TIMING.initialDelay);
   };
   
-  const stopChanging = () => {
+  const stopChangingByTen = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -82,25 +80,13 @@ export default function GameScreen({ route }: Props) {
   };
   
   const renderPlayerContents = (index: number) => {
-    const [isHolding, setIsHolding] = useState(false);
-  
     return (
       <>
         <View style={styles.lifeContainer}>
           <TouchableOpacity
-            onPress={() => {
-              if (!isHolding) {
-                changeLife(index, -1);
-              }
-            }}
-            onPressIn={() => {
-              setIsHolding(true);
-              startChanging(index, -1);
-            }}
-            onPressOut={() => {
-              setIsHolding(false);
-              stopChanging();
-            }}
+            onPress={() => changeLife(index, -1)}
+            onLongPress={() => startChangingByTen(index, -1)}
+            onPressOut={() => stopChangingByTen()}
             style={styles.button}
           >
             <Text style={styles.buttonText}>-</Text>
@@ -109,18 +95,10 @@ export default function GameScreen({ route }: Props) {
           <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
 
           <TouchableOpacity
-            onPress={() => {
-              if (!isHolding) {
-                changeLife(index, 1);
-              }
-            }}
-            onPressIn={() => {
-              setIsHolding(true);
-              startChanging(index, 1);
-            }}
+            onPress={() => changeLife(index, 1)}
+            onLongPress={() => startChangingByTen(index, 1)}
             onPressOut={() => {
-              setIsHolding(false);
-              stopChanging();
+              stopChangingByTen();
             }}
             style={styles.button}
           >
