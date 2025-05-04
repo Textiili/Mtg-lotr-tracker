@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { RouteProp } from '@react-navigation/native';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import ScanButton from '../components/ScanButton';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import OpenScannerButton from '../components/OpenScannerButton';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
 import { ScreenParams } from '../types/params';
 
@@ -68,8 +68,15 @@ export default function GameScreen({ route }: Props) {
       const current = updated[receiverIndex][fromIndex];
       const newValue = Math.min(21, Math.max(0, current + delta)); 
   
-      if (newValue > current) {
-        changeLife(receiverIndex, -(newValue - current));
+      const diff = newValue - current;
+  
+      // Damage taken
+      if (diff > 0) {
+        changeLife(receiverIndex, -diff);
+      }
+      // Healing (damage removed)
+      else if (diff < 0) {
+        changeLife(receiverIndex, -diff); // note: diff is negative, so -diff is positive
       }
   
       updated[receiverIndex][fromIndex] = newValue;
@@ -222,18 +229,27 @@ export default function GameScreen({ route }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <ScanButton playerLayout={players} />
-      {renderLayout()}
-    </View>
+    <ImageBackground
+      source={require('../assets/images/parchment.jpg')}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        <OpenScannerButton playerLayout={players} />
+        {renderLayout()}
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
   container: {
     flex: 1,
-    backgroundColor: 'white',
-    padding: 10,
+    backgroundColor: 'rgba(98, 47, 0, 0.54)',
   },
   singlePlayerContainer: {
     flex: 1,
@@ -271,7 +287,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     margin: 10,
-    backgroundColor: '#111',
+    backgroundColor: 'rgba(0, 0, 0, 0.10)',
     borderRadius: 15,
     minHeight: 150,
   },
@@ -283,14 +299,14 @@ const styles = StyleSheet.create({
   },
   lifeText: {
     fontFamily: 'MiddleEarth',
-    color: 'white',
+    color: 'black',
     fontSize: 60,
     minWidth: 80,
     textAlign: 'center',
     marginHorizontal: 15,
   },
   button: {
-    backgroundColor: '#333',
+    backgroundColor: 'rgba(0, 0, 0, 0.30)',
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -300,17 +316,17 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: 'MiddleEarth',
     fontSize: 30,
-    color: 'white',
+    color: 'black',
   },
   commanderDamageMenuOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#222d',
+    top: -20,
+    left: -20,
+    right: -20,
+    bottom: -20,
+    backgroundColor: '#5F452A',
     borderRadius: 15,
-    zIndex: 10,
+    zIndex: 2,
   },
   commanderDamageMenuContent: {
     width: '100%',
@@ -321,21 +337,21 @@ const styles = StyleSheet.create({
   commanderDamageRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 5,
+    marginVertical: 10,
     justifyContent: 'space-between',
   },
   commanderDamageText: {
-    color: 'white',
-    fontSize: 18,
+    color: 'black',
+    fontSize: 20,
     fontFamily: 'MiddleEarth',
-    minWidth: 90,
+    minWidth: 60,
     textAlign: 'center',
   },
   commanderDamageButton: {
-    backgroundColor: '#444',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    backgroundColor: '#76552C',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,

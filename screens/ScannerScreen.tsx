@@ -7,13 +7,13 @@ import {
   SafeAreaView, Image, 
   ActivityIndicator, Alert, 
   ScrollView, 
-  View 
+  View
 } from 'react-native';
 import { CameraView, CameraType } from 'expo-camera';
 import { ScryfallCard, ScryfallRuling } from '../types/scryfall';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
 
-type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR';
+type ScanState = 'READY' | 'SCANNING' | 'SCANNED'; 
 
 export default function ScannerScreen() {
   const cameraRef = useRef<CameraView>(null);
@@ -36,12 +36,11 @@ export default function ScannerScreen() {
     
     try {
       const photo = await capturePhoto();
-      //await analyzeImage(photo);
+      await analyzeImage(photo);
       setScanState('SCANNED');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
       console.error(error);
-      setScanState('ERROR');
     }
   };
 
@@ -73,7 +72,7 @@ export default function ScannerScreen() {
     }
 
     try {
-      const response = await fetch(//TODO: API_KEY
+      const response = await fetch(//TODO: Safer environment handling?
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_API_KEY}`,
         {
           method: 'POST',
@@ -131,7 +130,7 @@ export default function ScannerScreen() {
     setExtractedText(null);
   };
 
-  const renderDebugView = () => (//TODO
+  const renderDebugView = () => (
     <SafeAreaView style={styles.container}>
       <Image 
         source={{ uri: image! }}
@@ -139,14 +138,17 @@ export default function ScannerScreen() {
         resizeMode="contain"
       />
       {extractedText && (
-        <View style={styles.textContainer}>
+        <View style={styles.extractedTextContainer}>
           <Text style={styles.extractedText}>Extracted Text:</Text>
           <Text style={styles.extractedTextContent}>{extractedText}</Text>
         </View>
       )}
-      <View style={styles.bottomButtonContainer}>
-        <Button title="Scan Another Card" onPress={resetScanner} />
-      </View>
+      <TouchableOpacity
+        onPress={resetScanner}
+        style={styles.startAnotherCardButton}
+      >
+        <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 
@@ -196,9 +198,12 @@ export default function ScannerScreen() {
         )}
       </ScrollView>
       
-      <View style={styles.bottomButtonContainer}>
-        <Button title="Scan Another Card" onPress={resetScanner} />
-      </View>
+      <TouchableOpacity
+        onPress={resetScanner}
+        style={styles.startAnotherCardButton}
+      >
+        <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 
@@ -241,7 +246,7 @@ export default function ScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: 'black'
   },
   camera: {
     flex: 1,
@@ -254,11 +259,10 @@ const styles = StyleSheet.create({
     marginBottom: '20%',
   },
   scanButton: {
-    //backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    width: 100,
-    height: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.20)',
+    borderRadius: 60,
+    width: 120,
+    height: 120,
     justifyContent: 'space-around',
   },
   scanButtonImage: {
@@ -268,8 +272,37 @@ const styles = StyleSheet.create({
   scanButtonDisabled: {
     opacity: 0.7,
   },
-  buttonText: {
+  extractedTextContainer: {
+    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    margin: 20,
+    borderRadius: 8,
+  },
+  extractedText: {
+    color: 'white',
+    fontSize: 30,
+    fontFamily: 'MiddleEarth',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  extractedTextContent: {
+    color: 'white',
     fontSize: 20,
+    fontFamily: 'MiddleEarth',
+  },
+  startAnotherCardButton: {
+    marginTop: 10,
+    marginBottom: 10,
+    width: 200,
+    height: 90,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'white',
+  },
+  scanAnotherCardButtonText: {
+    fontSize: 15,
     fontFamily: 'MiddleEarth',
     color: 'black',
   },
@@ -284,13 +317,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'MiddleEarth',
     color: 'white',
-    alignSelf: 'center',
-  },
-  cardType: {
-    fontSize: 14,
-    fontFamily: 'MiddleEarth',
-    color: 'white',
-    marginBottom: 10,
     alignSelf: 'center',
   },
   information: {
@@ -336,27 +362,5 @@ const styles = StyleSheet.create({
     fontFamily: 'MiddleEarth',
     color: 'white',
     textAlign: 'center',
-  },
-  textContainer: {
-    padding: 20,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    margin: 20,
-    borderRadius: 8,
-  },
-  extractedText: {
-    color: 'white',
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  extractedTextContent: {
-    color: 'white',
-  },
-  bottomButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 20,
-    right: 20,
-    backgroundColor: 'black',
-    paddingVertical: 10,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, SafeAreaView, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, SafeAreaView, View, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenParams } from '../types/params';
@@ -14,6 +14,11 @@ export default function GameSetup() {
   const [startingLife, setStartingLife] = useState<number | null>(null);
 
   return (
+    <ImageBackground
+      source={require('../assets/images/parchment.jpg')}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
     <SafeAreaView style={styles.container}>
       <View style={styles.section}>
         <Text style={styles.header}>Set players:</Text>
@@ -44,30 +49,37 @@ export default function GameSetup() {
       </View>
 
       <View style={styles.section}>
-        {players !== null && startingLife !== null && (
-          <TouchableOpacity
-            style={styles.startGameButton}
-            onPress={() => navigation.navigate('GameScreen', 
-              {
-                players: players!,
-                startingLife: startingLife!,
-              }
-            )}
-          >
-            <Text style={styles.buttonText}>Start game</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('GameScreen', 
+            {
+              players: players!,
+              startingLife: startingLife!,
+            }
+          )}
+          style={[
+            styles.startGameButton,
+            (!players || !startingLife) && styles.startGameButtonDisabled,
+          ]}
+          disabled={!players || !startingLife}
+        >
+          <Text style={styles.buttonText}>Start game</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
   container: {
     flex: 1,
     padding: 20,
     justifyContent: 'space-between',
-    backgroundColor: 'black',
+    backgroundColor: 'rgba(98, 47, 0, 0.54)',
   },
   section: {
     marginTop: 100,
@@ -75,7 +87,7 @@ const styles = StyleSheet.create({
   header: {
     fontFamily: 'MiddleEarth',
     fontSize: 24,
-    color: 'white',
+    color: 'black',
     marginBottom: 30,
     alignSelf: 'center',
   },
@@ -86,19 +98,19 @@ const styles = StyleSheet.create({
   button: {
     width: 70,
     height: 70,
-    backgroundColor: '#111',
+    backgroundColor: 'rgba(0, 0, 0, 0.10)',
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
   },
   selectedButton: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(0, 0, 0, 0.30)',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
     fontSize: 18,
-    color: 'white',
+    color: 'black',
   },
   startGameButton: {
     marginBottom: 100,
@@ -108,6 +120,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#111',
+    backgroundColor: 'rgba(0, 0, 0, 0.30)',
   },
+  startGameButtonDisabled: {
+    backgroundColor: 'rgba(0, 0, 0, 0.10)',
+  }
 });

@@ -11,7 +11,7 @@ type ScanButtonProps = {
   playerLayout: number;
 };
 
-export default function ScanButton({ playerLayout }: ScanButtonProps) {
+export default function OpenScannerButton({ playerLayout }: ScanButtonProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const navigation = useNavigation<NavigationProp>();
 
@@ -49,25 +49,25 @@ export default function ScanButton({ playerLayout }: ScanButtonProps) {
 
 const styles = StyleSheet.create({
   scanButton: {
-    zIndex: 100,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    height: 100,
-    width: 100,
+    zIndex: 1,
+    backgroundColor: '#76552C',
+    borderRadius: 55,
+    height: 110,
+    width: 110,
     justifyContent: 'center',
     alignItems: 'center',
   },
   leftAligned: {
     position: 'absolute',
-    top: '52%',
+    top: '50%',
     right: '5%',
-    transform: [{ translateX: -50 }, { translateY: -50 }],
+    transform: [{ translateX: -55 }, { translateY: -55 }],
   },
   centered: {
     position: 'absolute',
-    top: '52%',
-    left: '51%',
-    transform: [{ translateX: -50 }, { translateY: -50 }],
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -55 }, { translateY: -55 }],
   },
   buttonImage: {
     width: '100%',
