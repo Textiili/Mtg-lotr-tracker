@@ -13,13 +13,13 @@ TypeScript: Adds static typing to JavaScript to improve development experience a
 
 expo-camera: Used for camera access (e.g., scanning cards).
 
-expo-screen-orientation: Locks screen orientation to portrait mode.
+expo-screen-orientation: Used to switch screen orientation in different views.
 
 expo-splash-screen: Manages the app’s splash screen during startup.
 
 expo-font: Loads custom fonts.
 
-expo-constants: Provides app metadata (version, OS environment, etc.).
+expo-constants: Provides app metadata (used for environment variable).
 
 expo-dev-client: Allows development using a custom Expo Go client.
 
