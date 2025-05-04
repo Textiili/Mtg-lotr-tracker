@@ -2,6 +2,7 @@
 A Lord of the Rings–themed life tracker for Magic: The Gathering, featuring a card scanner that fetches prices and rulings.
 
 🔧 Technologies Used
+
 Expo: A development platform for building React Native apps quickly and efficiently.
 
 React Native: The framework used to build the mobile app’s user interface.
@@ -27,6 +28,7 @@ expo-status-bar & expo-navigation-bar: Customize status bar and navigation bar a
 react-native-safe-area-context & react-native-screens: Help render UI safely and efficiently across different devices.
 
 🌐 External APIs
+
 Scryfall API: Used to retrieve Magic: The Gathering card data, rules, and price information.
 
 Gemini 1.5 Flash API (Google Generative Language API): Processes card images to extract card names using AI.
