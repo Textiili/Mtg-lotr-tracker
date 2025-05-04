@@ -16,7 +16,8 @@ type ScanState = 'READY' | 'SCANNING' | 'SCANNED';
 
 export default function ScannerScreen() {
   const cameraRef = useRef<CameraView>(null);
-  const [facing] = useState<CameraType>('back');
+
+  const [cameraFacing] = useState<CameraType>('back');
 
   useScreenOrientation('portrait');
 
@@ -35,7 +36,7 @@ export default function ScannerScreen() {
     
     try {
       const photo = await capturePhoto();
-      //await analyzeImage(photo);
+      await analyzeImage(photo);
       setScanState('SCANNED');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
@@ -217,7 +218,7 @@ export default function ScannerScreen() {
     <SafeAreaView style={styles.container}>
       <CameraView 
         style={styles.camera} 
-        facing={facing}
+        facing={cameraFacing}
         ref={cameraRef}
       >
         <View style={styles.buttonContainer}>

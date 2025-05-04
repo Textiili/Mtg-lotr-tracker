@@ -14,7 +14,7 @@ import ScannerScreen from "./screens/ScannerScreen";
 const Stack = createNativeStackNavigator<ScreenParams>();
 
 export default function App() {
-
+  //TODO: fontError handling and errorBoundary?
   const [fontsLoaded, fontError] = useFonts({
     'MiddleEarth': require('./assets/fonts/MiddleEarth.ttf'),
   });
