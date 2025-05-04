@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useFonts } from 'expo-font';
-import { View, ActivityIndicator, Platform } from "react-native";
+import { Platform } from "react-native";
+import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
@@ -28,14 +29,16 @@ export default function App() {
     }
     
     hideSystemBars();
-  }, []);
+
+    if (!fontsLoaded) {
+      SplashScreen.preventAutoHideAsync();
+    } else {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return(
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large"/>
-      </View>
-    )
+    return;
   }
   
   return (
