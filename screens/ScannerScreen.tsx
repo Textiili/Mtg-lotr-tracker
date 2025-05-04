@@ -4,7 +4,7 @@ import {
   Text, 
   TouchableOpacity, 
   SafeAreaView, Image, 
-  ActivityIndicator, Alert, 
+  ActivityIndicator,
   ScrollView, 
   View
 } from 'react-native';
@@ -39,7 +39,6 @@ export default function ScannerScreen() {
       await analyzeImage(photo);
       setScanState('SCANNED');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
       console.error(error);
     }
   };
