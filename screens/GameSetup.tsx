@@ -44,18 +44,19 @@ export default function GameSetup() {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity
-          style={[styles.startGameButton, players && startingLife ? styles.enabledButton : styles.disabledButton]}
-          onPress={() => navigation.navigate('GameScreen', 
-            {
-              players: players!,
-              startingLife: startingLife!,
-            }
-          )}
-          disabled={!players || !startingLife}
-        >
-          <Text style={styles.buttonText}>Start Game</Text>
-        </TouchableOpacity>
+        {players !== null && startingLife !== null && (
+          <TouchableOpacity
+            style={styles.startGameButton}
+            onPress={() => navigation.navigate('GameScreen', 
+              {
+                players: players!,
+                startingLife: startingLife!,
+              }
+            )}
+          >
+            <Text style={styles.buttonText}>Start game</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -107,11 +108,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-  },
-  disabledButton: {
-    backgroundColor: 'black', 
-  },
-  enabledButton: {
-    backgroundColor: '#111', 
+    backgroundColor: '#111',
   },
 });

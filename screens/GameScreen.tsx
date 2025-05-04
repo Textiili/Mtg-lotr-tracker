@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { RouteProp } from '@react-navigation/native';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ScreenParams } from '../types/params';
 import ScanButton from '../components/ScanButton';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
+import { ScreenParams } from '../types/params';
 
 type GameScreenRouteProp = RouteProp<ScreenParams, 'GameScreen'>;
 
@@ -12,20 +12,16 @@ type Props = {
 };
 
 export default function GameScreen({ route }: Props) {
-  // if (!route?.params || !route.params.players || !route.params.startingLife) {
-  //   console.error(`route.params: ${JSON.stringify(route?.params)}`);
-  //   return (
-  //     <View style={styles.errorContainer}>
-  //       <Text style={styles.errorText}>Error: Missing game setup data</Text>
-  //     </View>
-  //   );
-  // }
   useScreenOrientation('landscape');
 
   const { players } = route.params;
-  const [lifeTotals, setLifeTotals] = useState<number[]>(() =>
-    Array.from({ length: route.params.players }, () => route.params.startingLife)
+  const [lifeTotals, setLifeTotals] = useState<number[]>(
+    () => Array.from({ length: players }, () => route.params.startingLife)
   );
+  const [commanderDamage, setCommanderDamage] = useState<number[][]>(
+    () => Array.from({ length: players }, () => Array(players).fill(0))
+  );
+  const [commanderMenuVisible, setCommanderMenuVisible] = useState<number | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,65 +33,121 @@ export default function GameScreen({ route }: Props) {
       return updated;
     });
   };
+
+  const changeCommanderDamage = (receiverIndex: number, fromIndex: number, delta: number) => {
+    setCommanderDamage(prev => {
+      const updated = prev.map(row => [...row]);
+      const current = updated[receiverIndex][fromIndex];
+      const newValue = Math.min(21, Math.max(0, current + delta)); 
   
+      if (newValue > current) {
+        changeLife(receiverIndex, -(newValue - current));
+      }
+  
+      updated[receiverIndex][fromIndex] = newValue;
+      return updated;
+    });
+  };
+
+  const toggleCommanderMenu = (index: number) => {
+    setCommanderMenuVisible(prev => (prev === index ? null : index));
+  };
+
   const TIMING = {
     initialDelay: 0,
-    repeatInterval: 500,  
-    acceleration: 0.90,  
-    maxSpeed: 50          
+    repeatInterval: 500,
+    acceleration: 0.9,
+    maxSpeed: 50,
   };
-  
+
   const startChangingByTen = (index: number, delta: number) => {
     let speed = TIMING.repeatInterval;
-    
     timeoutRef.current = setTimeout(() => {
       const change = () => {
         changeLife(index, delta * 10);
         speed = Math.max(TIMING.maxSpeed, speed * TIMING.acceleration);
         intervalRef.current = setTimeout(change, speed);
       };
-      change(); 
+      change();
     }, TIMING.initialDelay);
   };
-  
+
   const stopChangingByTen = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (intervalRef.current) {
-      clearTimeout(intervalRef.current);
-      intervalRef.current = null;
-    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (intervalRef.current) clearTimeout(intervalRef.current);
+    timeoutRef.current = null;
+    intervalRef.current = null;
   };
-  
-  const renderPlayerContents = (index: number) => {
+
+  const getOverlayStyle = (viewerIndex: number): object => {//TODO!
+    console.log(`Players: ${players} ViewerIndex: ${viewerIndex}`);
+    let rotation = 0;
+    
+    if (players === 2) {
+      rotation = viewerIndex === 0 ? 180 : 90;
+    } else {
+      rotation = viewerIndex > 2 ? 180 : 0;
+    }
+
+    return {
+      // transform: [{ rotate: `${rotation}deg` }],
+    };
+  };
+
+  const renderPlayerContents = (index: number, viewerIndex: number | null) => {
+    const isCommanderTarget = viewerIndex !== null && index !== viewerIndex;
+
     return (
-      <>
-        <View style={styles.lifeContainer}>
-          <TouchableOpacity
-            onPress={() => changeLife(index, -1)}
-            onLongPress={() => startChangingByTen(index, -1)}
-            onPressOut={() => stopChangingByTen()}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
+      <View>
+        {isCommanderTarget && (
+          <View style={[styles.commanderMenuOverlay]}>
+            <View style={[styles.commanderMenuContent, getOverlayStyle(viewerIndex)]}>
+              <Text style={styles.commanderText}>From player {index + 1}</Text>
+              <View style={styles.commanderRow}>
+                <TouchableOpacity
+                  onPress={() => changeCommanderDamage(viewerIndex, index, -1)}
+                  style={styles.commanderButton}
+                >
+                  <Text style={styles.buttonText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.commanderText}>
+                  {commanderDamage[viewerIndex][index]}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => changeCommanderDamage(viewerIndex, index, 1)}
+                  style={styles.commanderButton}
+                >
+                  <Text style={styles.buttonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
 
-          <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
+        <TouchableOpacity onPress={() => toggleCommanderMenu(index)}>
+          <View style={styles.lifeContainer}>
+            <TouchableOpacity
+              onPress={() => changeLife(index, -1)}
+              onLongPress={() => startChangingByTen(index, -1)}
+              onPressOut={stopChangingByTen}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>-</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => changeLife(index, 1)}
-            onLongPress={() => startChangingByTen(index, 1)}
-            onPressOut={() => {
-              stopChangingByTen();
-            }}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-      </>
+            <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
+
+            <TouchableOpacity
+              onPress={() => changeLife(index, 1)}
+              onLongPress={() => startChangingByTen(index, 1)}
+              onPressOut={stopChangingByTen}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </View>
     );
   };
   
@@ -104,25 +156,17 @@ export default function GameScreen({ route }: Props) {
       case 1:
         return (
           <View style={styles.singlePlayerContainer}>
-            <View style={styles.playerBox}>
-              {renderPlayerContents(0)}
-            </View>
+            <View style={styles.playerBox}>{renderPlayerContents(0, commanderMenuVisible)}</View>
           </View>
         );
       case 2:
         return (
           <View style={styles.twoPlayerContainer}>
-            <View style={[
-              styles.playerBox, 
-              { transform: [{ rotate: '90deg' }] }
-            ]}>
-              {renderPlayerContents(0)}
+            <View style={[styles.playerBox, { transform: [{ rotate: '90deg' }] }]}>
+              {renderPlayerContents(0, commanderMenuVisible)}
             </View>
-            <View style={[
-              styles.playerBox, 
-              { transform: [{ rotate: '-90deg' }] }
-            ]}>
-              {renderPlayerContents(1)}
+            <View style={[styles.playerBox, { transform: [{ rotate: '-90deg' }] }]}>
+              {renderPlayerContents(1, commanderMenuVisible)}
             </View>
           </View>
         );
@@ -130,17 +174,11 @@ export default function GameScreen({ route }: Props) {
         return (
           <View style={styles.threePlayerContainer}>
             <View style={[styles.topRow, styles.flippedRow]}>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(0)}
-              </View>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(1)}
-              </View>
+              <View style={styles.playerBox}>{renderPlayerContents(0, commanderMenuVisible)}</View>
+              <View style={styles.playerBox}>{renderPlayerContents(1, commanderMenuVisible)}</View>
             </View>
             <View style={styles.bottomRow}>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(2)}
-              </View>
+              <View style={styles.playerBox}>{renderPlayerContents(2, commanderMenuVisible)}</View>
             </View>
           </View>
         );
@@ -148,20 +186,12 @@ export default function GameScreen({ route }: Props) {
         return (
           <View style={styles.fourPlayerContainer}>
             <View style={[styles.topRow, styles.flippedRow]}>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(0)}
-              </View>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(1)}
-              </View>
+              <View style={styles.playerBox}>{renderPlayerContents(0, commanderMenuVisible)}</View>
+              <View style={styles.playerBox}>{renderPlayerContents(1, commanderMenuVisible)}</View>
             </View>
             <View style={styles.bottomRow}>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(2)}
-              </View>
-              <View style={styles.playerBox}>
-                {renderPlayerContents(3)}
-              </View>
+              <View style={styles.playerBox}>{renderPlayerContents(2, commanderMenuVisible)}</View>
+              <View style={styles.playerBox}>{renderPlayerContents(3, commanderMenuVisible)}</View>
             </View>
           </View>
         );
@@ -179,17 +209,6 @@ export default function GameScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'black'
-  },
-  errorText: {
-    textAlign: 'center', 
-    color: 'red', 
-    fontSize: 18
-  },
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -261,5 +280,43 @@ const styles = StyleSheet.create({
     fontFamily: 'MiddleEarth',
     fontSize: 30,
     color: 'white',
+  },
+  commanderMenuOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#222d',
+    borderRadius: 15,
+    zIndex: 10,
+  },
+  commanderMenuContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  commanderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+    justifyContent: 'space-between',
+  },
+  commanderText: {
+    color: 'white',
+    fontSize: 18,
+    fontFamily: 'MiddleEarth',
+    minWidth: 90,
+    textAlign: 'center',
+  },
+  commanderButton: {
+    backgroundColor: '#444',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 5,
   },
 });

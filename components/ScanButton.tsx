@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   leftAligned: {
     position: 'absolute',
     top: '52%',
-    left: '18%',
+    right: '5%',
     transform: [{ translateX: -50 }, { translateY: -50 }],
   },
   centered: {

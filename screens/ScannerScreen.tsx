@@ -36,7 +36,7 @@ export default function ScannerScreen() {
     
     try {
       const photo = await capturePhoto();
-      await analyzeImage(photo);
+      //await analyzeImage(photo);
       setScanState('SCANNED');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
@@ -219,9 +219,13 @@ export default function ScannerScreen() {
             disabled={scanState === 'SCANNING'}
           >
             {scanState === 'SCANNING' ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="black" />
             ) : (
-              <Text style={styles.buttonText}>Scan Card</Text>
+              <Image
+                source={require('../assets/images/ring-inscription.png')}
+                style={styles.scanButtonImage}
+                resizeMode="contain"
+              />
             )}
           </TouchableOpacity>
         </View>
@@ -245,17 +249,21 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'flex-end',
-    padding: 20,
+    marginBottom: '20%',
   },
   scanButton: {
-    padding: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    //backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'white',
     borderRadius: 10,
-    minWidth: 120,
-    alignItems: 'center',
+    width: 100,
+    height: 100,
+    justifyContent: 'space-around',
+  },
+  scanButtonImage: {
+    width: '100%',
+    height: '100%',
   },
   scanButtonDisabled: {
     opacity: 0.7,
