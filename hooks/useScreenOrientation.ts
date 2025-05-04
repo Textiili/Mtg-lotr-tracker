@@ -1,4 +1,3 @@
-// src/hooks/useScreenOrientation.ts
 import { useFocusEffect } from '@react-navigation/native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import React from 'react';
@@ -14,10 +13,8 @@ export const useScreenOrientation = (orientation: OrientationType) => {
     React.useCallback(() => {
       const setOrientation = async () => {
         try {
-          // First unlock any existing orientation lock
           await ScreenOrientation.unlockAsync();
           
-          // Then lock to the requested orientation
           if (orientation === 'portrait') {
             await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
             console.log('Portrait orientation set');
