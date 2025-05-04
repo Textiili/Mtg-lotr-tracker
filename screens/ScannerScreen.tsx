@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { 
-  Button, 
   StyleSheet, 
   Text, 
   TouchableOpacity, 
@@ -36,7 +35,7 @@ export default function ScannerScreen() {
     
     try {
       const photo = await capturePhoto();
-      await analyzeImage(photo);
+      //await analyzeImage(photo);
       setScanState('SCANNED');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to scan card');
@@ -132,23 +131,30 @@ export default function ScannerScreen() {
 
   const renderDebugView = () => (
     <SafeAreaView style={styles.container}>
-      <Image 
-        source={{ uri: image! }}
-        style={styles.cardImage}
-        resizeMode="contain"
-      />
-      {extractedText && (
-        <View style={styles.extractedTextContainer}>
-          <Text style={styles.extractedText}>Extracted Text:</Text>
-          <Text style={styles.extractedTextContent}>{extractedText}</Text>
+      <View style={styles.debugWrapper}>
+        <View style={styles.debugTop}>
+          <Image 
+            source={{ uri: image! }}
+            style={styles.debugImage}
+            resizeMode="contain"
+          />
+          {extractedText && (
+            <View style={styles.extractedTextContainer}>
+              <Text style={styles.extractedText}>Extracted Text:</Text>
+              <Text style={styles.extractedTextContent}>{extractedText}</Text>
+            </View>
+          )}
         </View>
-      )}
-      <TouchableOpacity
-        onPress={resetScanner}
-        style={styles.startAnotherCardButton}
-      >
-        <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
-      </TouchableOpacity>
+  
+        <View style={styles.debugBottom}>
+          <TouchableOpacity
+            onPress={resetScanner}
+            style={styles.scanAnotherCardButton}
+          >
+            <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 
@@ -200,7 +206,7 @@ export default function ScannerScreen() {
       
       <TouchableOpacity
         onPress={resetScanner}
-        style={styles.startAnotherCardButton}
+        style={styles.scanAnotherCardButton}
       >
         <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
       </TouchableOpacity>
@@ -272,6 +278,20 @@ const styles = StyleSheet.create({
   scanButtonDisabled: {
     opacity: 0.7,
   },
+  debugWrapper: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  debugTop: {
+    alignItems: 'center',
+    marginTop: '10%',
+  },
+  debugImage: {
+    width: 200,
+    height: 280,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
   extractedTextContainer: {
     padding: 20,
     backgroundColor: 'rgba(0,0,0,0.7)',
@@ -290,7 +310,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'MiddleEarth',
   },
-  startAnotherCardButton: {
+  debugBottom: {
+    paddingBottom: 30,
+    alignItems: 'center',
+  },
+  scanAnotherCardButton: {
     marginTop: 10,
     marginBottom: 10,
     width: 200,
