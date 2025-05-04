@@ -12,7 +12,7 @@ import { CameraView, CameraType } from 'expo-camera';
 import { ScryfallCard, ScryfallRuling } from '../types/scryfall';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
 
-type ScanState = 'READY' | 'SCANNING' | 'SCANNED'; 
+type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR'; 
 
 export default function ScannerScreen() {
   const cameraRef = useRef<CameraView>(null);
@@ -40,6 +40,7 @@ export default function ScannerScreen() {
       setScanState('SCANNED');
     } catch (error) {
       console.error(error);
+      setScanState('ERROR');
     }
   };
 
@@ -149,9 +150,17 @@ export default function ScannerScreen() {
         <View style={styles.debugBottom}>
           <TouchableOpacity
             onPress={resetScanner}
-            style={styles.scanAnotherCardButton}
+            style={[
+              styles.scanAnotherCardButton,
+              scanState === 'SCANNING' && styles.scanAnotherCardButtonDisabled
+            ]} 
+            disabled={scanState === 'SCANNING'}
           >
-            <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
+            {scanState === 'SCANNING' ? (
+              <ActivityIndicator color="black" />
+            ) : (
+              <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -222,11 +231,11 @@ export default function ScannerScreen() {
       >
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
+            onPress={handleScanCard}
             style={[
               styles.scanButton,
               scanState === 'SCANNING' && styles.scanButtonDisabled
             ]} 
-            onPress={handleScanCard}
             disabled={scanState === 'SCANNING'}
           >
             {scanState === 'SCANNING' ? (
@@ -329,6 +338,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'MiddleEarth',
     color: 'black',
+  },
+  scanAnotherCardButtonDisabled: {
+    opacity: 0.5,
   },
   infoContainer: {
     marginTop: 20,
