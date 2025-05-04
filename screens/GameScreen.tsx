@@ -26,6 +26,34 @@ export default function GameScreen({ route }: Props) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const rotationConfig: Record<number, Record<number, number[]>> = {
+    1: {
+      0: [0],
+    },
+    2: {
+      0: [0, 180],  
+      1: [180, 0], 
+    },
+    3: {
+      0: [0, 0, 180],    
+      1: [0, 0, 180],   
+      2: [180, 180, 0],  
+    },
+    4: {
+      0: [0, 0, 180, 180],    
+      1: [0, 0, 180, 180],
+      2: [180, 180, 0, 0],  
+      3: [180, 180, 0, 0], 
+    }
+  };
+
+  const getRotationForPlayer = (targetIndex: number, viewerIndex: number): number => {
+    if (viewerIndex === null || !rotationConfig[players] || !rotationConfig[players][viewerIndex]) {
+      return 0;
+    }
+    return rotationConfig[players][viewerIndex][targetIndex] || 0;
+  };
+
   const changeLife = (index: number, delta: number) => {
     setLifeTotals(prev => {
       const updated = [...prev];
@@ -79,43 +107,35 @@ export default function GameScreen({ route }: Props) {
     intervalRef.current = null;
   };
 
-  const getOverlayStyle = (viewerIndex: number): object => {//TODO!
-    console.log(`Players: ${players} ViewerIndex: ${viewerIndex}`);
-    let rotation = 0;
-    
-    if (players === 2) {
-      rotation = viewerIndex === 0 ? 180 : 90;
-    } else {
-      rotation = viewerIndex > 2 ? 180 : 0;
-    }
-
-    return {
-      // transform: [{ rotate: `${rotation}deg` }],
-    };
-  };
-
   const renderPlayerContents = (index: number, viewerIndex: number | null) => {
     const isCommanderTarget = viewerIndex !== null && index !== viewerIndex;
+    const rotation = isCommanderTarget ? getRotationForPlayer(index, viewerIndex) : 0;
 
     return (
       <View>
+        {/* Commander damage menu */}
         {isCommanderTarget && (
-          <View style={[styles.commanderMenuOverlay]}>
-            <View style={[styles.commanderMenuContent, getOverlayStyle(viewerIndex)]}>
-              <Text style={styles.commanderText}>From player {index + 1}</Text>
-              <View style={styles.commanderRow}>
+          <View style={styles.commanderDamageMenuOverlay}>
+            <View 
+              style={[
+                styles.commanderDamageMenuContent, 
+                { transform: [{ rotate: `${rotation}deg` }] }
+              ]}
+            >
+              <Text style={styles.commanderDamageText}>From player {index + 1}</Text>
+              <View style={styles.commanderDamageRow}>
                 <TouchableOpacity
                   onPress={() => changeCommanderDamage(viewerIndex, index, -1)}
-                  style={styles.commanderButton}
+                  style={styles.commanderDamageButton}
                 >
                   <Text style={styles.buttonText}>-</Text>
                 </TouchableOpacity>
-                <Text style={styles.commanderText}>
+                <Text style={styles.commanderDamageText}>
                   {commanderDamage[viewerIndex][index]}
                 </Text>
                 <TouchableOpacity
                   onPress={() => changeCommanderDamage(viewerIndex, index, 1)}
-                  style={styles.commanderButton}
+                  style={styles.commanderDamageButton}
                 >
                   <Text style={styles.buttonText}>+</Text>
                 </TouchableOpacity>
@@ -124,29 +144,30 @@ export default function GameScreen({ route }: Props) {
           </View>
         )}
 
-        <TouchableOpacity onPress={() => toggleCommanderMenu(index)}>
-          <View style={styles.lifeContainer}>
-            <TouchableOpacity
-              onPress={() => changeLife(index, -1)}
-              onLongPress={() => startChangingByTen(index, -1)}
-              onPressOut={stopChangingByTen}
-              style={styles.button}
-            >
-              <Text style={styles.buttonText}>-</Text>
-            </TouchableOpacity>
+        {/* Player stats */}
+        <View style={styles.lifeContainer}>
+          <TouchableOpacity
+            onPress={() => changeLife(index, -1)}
+            onLongPress={() => startChangingByTen(index, -1)}
+            onPressOut={stopChangingByTen}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
 
+          <TouchableOpacity onPress={() => toggleCommanderMenu(index)}>
             <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => changeLife(index, 1)}
-              onLongPress={() => startChangingByTen(index, 1)}
-              onPressOut={stopChangingByTen}
-              style={styles.button}
-            >
-              <Text style={styles.buttonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => changeLife(index, 1)}
+            onLongPress={() => startChangingByTen(index, 1)}
+            onPressOut={stopChangingByTen}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -281,7 +302,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: 'white',
   },
-  commanderMenuOverlay: {
+  commanderDamageMenuOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -291,26 +312,26 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     zIndex: 10,
   },
-  commanderMenuContent: {
+  commanderDamageMenuContent: {
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  commanderRow: {
+  commanderDamageRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 5,
     justifyContent: 'space-between',
   },
-  commanderText: {
+  commanderDamageText: {
     color: 'white',
     fontSize: 18,
     fontFamily: 'MiddleEarth',
     minWidth: 90,
     textAlign: 'center',
   },
-  commanderButton: {
+  commanderDamageButton: {
     backgroundColor: '#444',
     width: 40,
     height: 40,
