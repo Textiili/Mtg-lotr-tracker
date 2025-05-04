@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   commanderDamageMenuOverlay: {
     position: 'absolute',
-    top: -20,
+    top: 0,
     left: -20,
     right: -20,
     bottom: -20,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   commanderDamageRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 4,
     justifyContent: 'space-between',
   },
   commanderDamageText: {

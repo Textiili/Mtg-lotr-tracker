@@ -51,9 +51,9 @@ const styles = StyleSheet.create({
   scanButton: {
     zIndex: 1,
     backgroundColor: '#76552C',
-    borderRadius: 55,
-    height: 110,
-    width: 110,
+    borderRadius: 45,
+    height: 90,
+    width: 90,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -61,13 +61,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     right: '5%',
-    transform: [{ translateX: -55 }, { translateY: -55 }],
+    transform: [{ translateX: -45 }, { translateY: -45 }],
   },
   centered: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -55 }, { translateY: -55 }],
+    transform: [{ translateX: -45 }, { translateY: -45 }],
   },
   buttonImage: {
     width: '100%',
