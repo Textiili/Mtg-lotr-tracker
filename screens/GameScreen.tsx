@@ -70,13 +70,11 @@ export default function GameScreen({ route }: Props) {
   
       const diff = newValue - current;
   
-      // Damage taken
       if (diff > 0) {
         changeLife(receiverIndex, -diff);
       }
-      // Healing (damage removed)
       else if (diff < 0) {
-        changeLife(receiverIndex, -diff); // note: diff is negative, so -diff is positive
+        changeLife(receiverIndex, -diff);
       }
   
       updated[receiverIndex][fromIndex] = newValue;
@@ -133,6 +131,7 @@ export default function GameScreen({ route }: Props) {
               <View style={styles.commanderDamageRow}>
                 <TouchableOpacity
                   onPress={() => changeCommanderDamage(viewerIndex, index, -1)}
+                  onLongPress={() => changeCommanderDamage(viewerIndex, index, -21)}
                   style={styles.commanderDamageButton}
                 >
                   <Text style={styles.buttonText}>-</Text>
@@ -142,6 +141,7 @@ export default function GameScreen({ route }: Props) {
                 </Text>
                 <TouchableOpacity
                   onPress={() => changeCommanderDamage(viewerIndex, index, 1)}
+                  onLongPress={() => changeCommanderDamage(viewerIndex, index, 21)}
                   style={styles.commanderDamageButton}
                 >
                   <Text style={styles.buttonText}>+</Text>

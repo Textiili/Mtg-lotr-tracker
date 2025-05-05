@@ -232,10 +232,7 @@ export default function ScannerScreen() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             onPress={handleScanCard}
-            style={[
-              styles.scanButton,
-              scanState === 'SCANNING' && styles.scanButtonDisabled
-            ]} 
+            style={styles.scanButton} 
             disabled={scanState === 'SCANNING'}
           >
             {scanState === 'SCANNING' ? (
@@ -283,9 +280,6 @@ const styles = StyleSheet.create({
   scanButtonImage: {
     width: '100%',
     height: '100%',
-  },
-  scanButtonDisabled: {
-    opacity: 0.7,
   },
   debugWrapper: {
     flex: 1,
