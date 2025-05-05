@@ -11,6 +11,8 @@ import {
 import { CameraView, CameraType } from 'expo-camera';
 import { ScryfallCard, ScryfallRuling } from '../types/scryfall';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
+import { analyzeImage } from '../utils/analyzeImage';
+import { fetchCardData } from '../utils/fetchCardData';
 
 type ScanState = 'READY' | 'SCANNING' | 'SCANNED' | 'ERROR'; 
 
@@ -36,7 +38,12 @@ export default function ScannerScreen() {
     
     try {
       const photo = await capturePhoto();
-      await analyzeImage(photo);
+      const imageText = await analyzeImage(photo, process.env.EXPO_PUBLIC_API_KEY);
+      setExtractedText(imageText);
+
+      const data = await fetchCardData(imageText);
+      setCardData(data.card);
+      setRulings(data.rulings);
       setScanState('SCANNED');
     } catch (error) {
       console.error(error);
@@ -60,67 +67,6 @@ export default function ScannerScreen() {
 
     setImage(photo.uri);
     return photo.base64;
-  };
-
-  const analyzeImage = async (imageBase64: string | undefined) => {
-    if (!imageBase64) {
-      throw new Error('No image data to analyze');
-    }
-
-    if (!process.env.EXPO_PUBLIC_API_KEY) {
-      throw new Error('Api key is missing!');
-    }
-
-    try {
-      const response = await fetch(//TODO: Safer environment handling?
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
-                { text: 'What is the name of the trading card? Answer only with the name.' }
-              ]
-            }]
-          })
-        }
-      );
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!text) throw new Error('No text found in response');
-      
-      setExtractedText(text);
-      await searchCard(text);
-    } catch (error) {
-      console.error('Image analysis error:', error);
-      throw new Error('Failed to analyze image');
-    }
-  };
-
-  const searchCard = async (cardName: string) => {
-    try {
-      const response = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}`);
-      const data = await response.json();
-  
-      if (data.object === 'error') {
-        throw new Error(data.details || 'Card not found');
-      }
-  
-      setCardData(data);
-  
-      if (data.rulings_uri) {
-        const rulingsRes = await fetch(data.rulings_uri);
-        const rulingsData = await rulingsRes.json();
-        setRulings(rulingsData.data);
-      }
-    } catch (error) {
-      console.error('Card search error:', error);
-      throw new Error('Failed to find card');
-    }
   };
   
   const resetScanner = () => {
