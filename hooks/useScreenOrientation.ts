@@ -8,7 +8,7 @@ type OrientationType = 'portrait' | 'landscape';
  * Custom hook to manage screen orientation based on screen focus
  * @param orientation The desired orientation: 'portrait' or 'landscape'
  */
-export const useScreenOrientation = (orientation: OrientationType) => {//TODO: Fix screen not locking
+export const useScreenOrientation = (orientation: OrientationType) => {//TODO: Fix screen not locking! Is screen orientation needed?
   useFocusEffect(
     React.useCallback(() => {
       const setOrientation = async () => {
