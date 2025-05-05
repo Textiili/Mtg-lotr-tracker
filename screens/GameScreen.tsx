@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react
 import OpenScannerButton from '../components/OpenScannerButton';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
 import { ScreenParams } from '../types/params';
+import { getRotationForPlayer} from '../utils/rotation';
 
 type GameScreenRouteProp = RouteProp<ScreenParams, 'GameScreen'>;
 
@@ -25,34 +26,6 @@ export default function GameScreen({ route }: Props) {
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const rotationConfig: Record<number, Record<number, number[]>> = {
-    1: {
-      0: [0],
-    },
-    2: {
-      0: [0, 180],  
-      1: [180, 0], 
-    },
-    3: {
-      0: [0, 0, 180],    
-      1: [0, 0, 180],   
-      2: [180, 180, 0],  
-    },
-    4: {
-      0: [0, 0, 180, 180],    
-      1: [0, 0, 180, 180],
-      2: [180, 180, 0, 0],  
-      3: [180, 180, 0, 0], 
-    }
-  };
-
-  const getRotationForPlayer = (targetIndex: number, viewerIndex: number): number => {
-    if (viewerIndex === null || !rotationConfig[players] || !rotationConfig[players][viewerIndex]) {
-      return 0;
-    }
-    return rotationConfig[players][viewerIndex][targetIndex] || 0;
-  };
 
   const changeLife = (index: number, delta: number) => {
     setLifeTotals(prev => {
@@ -114,7 +87,7 @@ export default function GameScreen({ route }: Props) {
 
   const renderPlayerContents = (index: number, viewerIndex: number | null) => {
     const isCommanderTarget = viewerIndex !== null && index !== viewerIndex;
-    const rotation = isCommanderTarget ? getRotationForPlayer(index, viewerIndex) : 0;
+    const rotation = isCommanderTarget ? getRotationForPlayer(players, index, viewerIndex) : 0;
 
     return (
       <View>
