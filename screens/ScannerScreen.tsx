@@ -76,6 +76,32 @@ export default function ScannerScreen() {
     setExtractedText(null);
   };
 
+  const renderCameraView = () => (
+    <SafeAreaView style={styles.container}>
+      <CameraView 
+        style={styles.camera} 
+        facing={cameraFacing}
+        ref={cameraRef}
+      >
+        <TouchableOpacity 
+          onPress={handleScanCard}
+          style={styles.scanButton} 
+          disabled={scanState === 'SCANNING'}
+        >
+          {scanState === 'SCANNING' ? (
+            <ActivityIndicator color="black" />
+          ) : (
+            <Image
+              source={require('../assets/images/ring-inscription.png')}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+          )}
+        </TouchableOpacity>
+      </CameraView>
+    </SafeAreaView>
+  );
+
   const renderDebugView = () => (
     <SafeAreaView style={styles.container}>
       <View style={styles.debugWrapper}>
@@ -92,30 +118,30 @@ export default function ScannerScreen() {
             </View>
           )}
         </View>
-  
-        <View style={styles.debugBottom}>
-          <TouchableOpacity
-            onPress={resetScanner}
-            style={[
-              styles.scanAnotherCardButton,
-              scanState === 'SCANNING' && styles.scanAnotherCardButtonDisabled
-            ]} 
-            disabled={scanState === 'SCANNING'}
-          >
-            {scanState === 'SCANNING' ? (
-              <ActivityIndicator color="black" />
-            ) : (
-              <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+
+        <TouchableOpacity 
+          onPress={resetScanner}
+          style={styles.scanButton} 
+          disabled={scanState === 'SCANNING'}
+        >
+          {scanState === 'SCANNING' ? (
+            <ActivityIndicator color="black" />
+          ) : (
+            <Image
+              source={require('../assets/images/ring-inscription.png')}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+          )}
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 
   const renderCardResult = () => (
     <SafeAreaView style={styles.container}>
-      <View style={styles.infoContainer}>
+      <View style={styles.cardResultContainer}>
+        <View style={styles.infoContainer}>
           <Text style={styles.header}>CARD INFO:</Text>
           
           <View style={styles.information}>
@@ -143,56 +169,41 @@ export default function ScannerScreen() {
           </View>
         </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {rulings.length > 0 ? (
-          <View style={styles.rulesContainer}>
-            {rulings.map((ruling, index) => (
-              <Text key={index} style={[styles.cardText, { marginBottom: 20}]}>
-                - {ruling.comment} ({ruling.published_at})
-              </Text>
-            ))}
-          </View>
-          ) : (
-          <View style={styles.rulesContainer}>
-            <Text style={styles.noRulesText}>No additional rules found</Text>
-          </View>
-        )}
-      </ScrollView>
-      
-      <TouchableOpacity
-        onPress={resetScanner}
-        style={styles.scanAnotherCardButton}
-      >
-        <Text style={styles.scanAnotherCardButtonText}>Scan Another Card</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
-  );
-
-  const renderCameraView = () => (
-    <SafeAreaView style={styles.container}>
-      <CameraView 
-        style={styles.camera} 
-        facing={cameraFacing}
-        ref={cameraRef}
-      >
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            onPress={handleScanCard}
-            style={styles.scanButton} 
-            disabled={scanState === 'SCANNING'}
-          >
-            {scanState === 'SCANNING' ? (
-              <ActivityIndicator color="black" />
+        <ScrollView 
+          style={styles.scrollViewStyle}
+          contentContainerStyle={styles.scrollContainer}
+        >
+          {rulings.length > 0 ? (
+            <View style={styles.rulesContainer}>
+              {rulings.map((ruling, index) => (
+                <Text key={index} style={[styles.cardText, { marginBottom: 20}]}>
+                  - {ruling.comment} ({ruling.published_at})
+                </Text>
+              ))}
+            </View>
             ) : (
-              <Image
-                source={require('../assets/images/ring-inscription.png')}
-                style={styles.scanButtonImage}
-                resizeMode="contain"
-              />
-            )}
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+            <View style={styles.rulesContainer}>
+              <Text style={styles.noRulesText}>No additional rules found</Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+
+      <TouchableOpacity 
+        onPress={resetScanner}
+        style={styles.scanButton} 
+        disabled={scanState === 'SCANNING'}
+      >
+        {scanState === 'SCANNING' ? (
+          <ActivityIndicator color="black" />
+        ) : (
+          <Image
+            source={require('../assets/images/ring-inscription.png')}
+            style={styles.buttonImage}
+            resizeMode="contain"
+          />
+        )}
+      </TouchableOpacity>
     </SafeAreaView>
   );
 
@@ -222,8 +233,11 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     justifyContent: 'space-around',
+    alignSelf: 'center',
+    position: 'absolute',
+    bottom: 40,
   },
-  scanButtonImage: {
+  buttonImage: {
     width: '100%',
     height: '100%',
   },
@@ -263,24 +277,9 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     alignItems: 'center',
   },
-  scanAnotherCardButton: {
-    marginTop: 10,
-    marginBottom: 10,
-    width: 200,
-    height: 90,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: 'white',
-  },
-  scanAnotherCardButtonText: {
-    fontSize: 15,
-    fontFamily: 'MiddleEarth',
-    color: 'black',
-  },
-  scanAnotherCardButtonDisabled: {
-    opacity: 0.5,
+  cardResultContainer: {
+    flex: 1,
+    marginBottom: 170, 
   },
   infoContainer: {
     marginTop: 20,
@@ -314,9 +313,11 @@ const styles = StyleSheet.create({
     fontFamily: 'MiddleEarth',
     color: 'white',
   },
+  scrollViewStyle: {
+    flex: 1,
+  },
   scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 80, 
+    paddingBottom: 20,
   },
   rulesContainer: {
     padding: 20,
