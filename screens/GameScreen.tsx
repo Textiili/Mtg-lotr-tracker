@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react
 import OpenScannerButton from '../components/OpenScannerButton';
 import { useScreenOrientation } from '../hooks/useScreenOrientation';
 import { ScreenParams } from '../types/params';
-import { getRotationForPlayer} from '../utils/rotation';
+import { getRotationForPlayer } from '../utils/rotation';
 
 type GameScreenRouteProp = RouteProp<ScreenParams, 'GameScreen'>;
 
@@ -23,7 +23,11 @@ export default function GameScreen({ route }: Props) {
     () => Array.from({ length: players }, () => Array(players).fill(0))
   );
   const [commanderMenuVisible, setCommanderMenuVisible] = useState<number | null>(null);
+  const [lifeChangeDeltas, setLifeChangeDeltas] = useState<(number | null)[]>(
+    () => Array(players).fill(null)
+  );
 
+  const deltaTimeouts = useRef<(NodeJS.Timeout | null)[]>(Array(players).fill(null));
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -33,23 +37,36 @@ export default function GameScreen({ route }: Props) {
       updated[index] += delta;
       return updated;
     });
+
+    if (deltaTimeouts.current[index]) {
+      clearTimeout(deltaTimeouts.current[index]!);
+    }
+
+    setLifeChangeDeltas(prev => {
+      const updated = [...prev];
+      updated[index] = (updated[index] ?? 0) + delta;
+      return updated;
+    });
+
+    deltaTimeouts.current[index] = setTimeout(() => {
+      setLifeChangeDeltas(prev => {
+        const updated = [...prev];
+        updated[index] = null;
+        return updated;
+      });
+      deltaTimeouts.current[index] = null;
+    }, 1000);
   };
 
   const changeCommanderDamage = (receiverIndex: number, fromIndex: number, delta: number) => {
     setCommanderDamage(prev => {
       const updated = prev.map(row => [...row]);
       const current = updated[receiverIndex][fromIndex];
-      const newValue = Math.min(21, Math.max(0, current + delta)); 
-  
+      const newValue = Math.min(21, Math.max(0, current + delta));
+
       const diff = newValue - current;
-  
-      if (diff > 0) {
-        changeLife(receiverIndex, -diff);
-      }
-      else if (diff < 0) {
-        changeLife(receiverIndex, -diff);
-      }
-  
+      if (diff !== 0) changeLife(receiverIndex, -diff);
+
       updated[receiverIndex][fromIndex] = newValue;
       return updated;
     });
@@ -91,15 +108,9 @@ export default function GameScreen({ route }: Props) {
 
     return (
       <View>
-        {/* Commander damage menu */}
         {isCommanderTarget && (
           <View style={styles.commanderDamageMenuOverlay}>
-            <View 
-              style={[
-                styles.commanderDamageMenuContent, 
-                { transform: [{ rotate: `${rotation}deg` }] }
-              ]}
-            >
+            <View style={[styles.commanderDamageMenuContent, { transform: [{ rotate: `${rotation}deg` }] }]}>
               <Text style={styles.commanderDamageText}>From player {index + 1}</Text>
               <View style={styles.commanderDamageRow}>
                 <TouchableOpacity
@@ -136,7 +147,17 @@ export default function GameScreen({ route }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => toggleCommanderMenu(index)}>
-            <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
+            <View style={{ alignItems: 'center' }}>
+              {lifeChangeDeltas[index] !== null && (
+                <Text
+                  style={styles.lifeDeltaText}
+                >
+                  {lifeChangeDeltas[index]! > 0 ? '+' : ''}
+                  {lifeChangeDeltas[index]}
+                </Text>
+              )}
+              <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -151,7 +172,7 @@ export default function GameScreen({ route }: Props) {
       </View>
     );
   };
-  
+
   const renderLayout = () => {
     switch (players) {
       case 1:
@@ -277,6 +298,14 @@ const styles = StyleSheet.create({
     minWidth: 80,
     textAlign: 'center',
     marginHorizontal: 15,
+  },
+  lifeDeltaText: {
+    position: 'absolute',
+    top: -30,
+    fontSize: 20,
+    fontFamily: 'MiddleEarth',
+    textAlign: 'center',
+    zIndex: 10,
   },
   button: {
     backgroundColor: 'rgba(0, 0, 0, 0.30)',
