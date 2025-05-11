@@ -55,7 +55,7 @@ export default function GameScreen({ route }: Props) {
         return updated;
       });
       deltaTimeouts.current[index] = null;
-    }, 1000);
+    }, 1500);
   };
 
   const changeCommanderDamage = (receiverIndex: number, fromIndex: number, delta: number) => {
