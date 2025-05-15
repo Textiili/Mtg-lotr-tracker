@@ -15,7 +15,7 @@ export default function GameSetup() {
 
   return (
     <ImageBackground
-      source={require('../assets/images/parchment.jpg')}
+      source={require('../assets/images/parchment.png')}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
@@ -79,17 +79,19 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(98, 47, 0, 0.54)',
   },
   section: {
     marginTop: 100,
   },
   header: {
     fontFamily: 'MiddleEarth',
-    fontSize: 24,
-    color: 'black',
+    fontSize: 30,
     marginBottom: 30,
     alignSelf: 'center',
+    color: 'black',
+    textShadowColor: 'rgb(255, 255, 255)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 1,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -98,19 +100,19 @@ const styles = StyleSheet.create({
   button: {
     width: 70,
     height: 70,
-    backgroundColor: 'rgba(0, 0, 0, 0.10)',
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
+    backgroundColor: 'rgba(78, 78, 78, 0.80)',
   },
   selectedButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.30)',
+    backgroundColor: 'rgb(78,78,78)',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
     fontSize: 18,
-    color: 'black',
+    color: '#d2d4dc',
   },
   startGameButton: {
     marginBottom: 100,
@@ -120,9 +122,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.30)',
+    backgroundColor: 'rgb(78,78,78)',
   },
   startGameButtonDisabled: {
-    backgroundColor: 'rgba(0, 0, 0, 0.10)',
+    backgroundColor: 'rgba(78, 78, 78, 0.80)',
   }
 });

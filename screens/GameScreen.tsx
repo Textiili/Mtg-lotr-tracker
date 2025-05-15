@@ -148,6 +148,7 @@ export default function GameScreen({ route }: Props) {
 
           <TouchableOpacity onPress={() => toggleCommanderMenu(index)}>
             <View style={{ alignItems: 'center' }}>
+              <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
               {lifeChangeDeltas[index] !== null && (
                 <Text
                   style={styles.lifeDeltaText}
@@ -156,7 +157,6 @@ export default function GameScreen({ route }: Props) {
                   {lifeChangeDeltas[index]}
                 </Text>
               )}
-              <Text style={styles.lifeText}>{lifeTotals[index]}</Text>
             </View>
           </TouchableOpacity>
 
@@ -224,7 +224,7 @@ export default function GameScreen({ route }: Props) {
 
   return (
     <ImageBackground
-      source={require('../assets/images/parchment.jpg')}
+      source={require('../assets/images/parchment.png')}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
@@ -243,7 +243,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'rgba(98, 47, 0, 0.54)',
   },
   singlePlayerContainer: {
     flex: 1,
@@ -281,9 +280,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     margin: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.10)',
     borderRadius: 15,
     minHeight: 150,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   lifeContainer: {
     flexDirection: 'row',
@@ -301,19 +300,24 @@ const styles = StyleSheet.create({
   },
   lifeDeltaText: {
     position: 'absolute',
-    top: -30,
+    bottom: -30,
     fontSize: 20,
     fontFamily: 'MiddleEarth',
     textAlign: 'center',
     zIndex: 10,
+    // color: 'black',
+    // textShadowColor: 'rgb(255, 255, 255)',
+    // textShadowOffset: { width: 2, height: 2 },
+    // textShadowRadius: 1,
+    elevation: 10,
   },
   button: {
-    backgroundColor: 'rgba(0, 0, 0, 0.30)',
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgb(210,212,220)',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
@@ -326,7 +330,7 @@ const styles = StyleSheet.create({
     left: -20,
     right: -20,
     bottom: -20,
-    backgroundColor: '#5F452A',
+    backgroundColor: 'rgb(78,78,78)',
     borderRadius: 15,
     zIndex: 2,
   },
@@ -343,19 +347,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   commanderDamageText: {
-    color: 'black',
+    color: 'rgb(210,212,220)',
     fontSize: 20,
     fontFamily: 'MiddleEarth',
     minWidth: 60,
     textAlign: 'center',
   },
   commanderDamageButton: {
-    backgroundColor: '#76552C',
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
+    backgroundColor: 'rgb(210,212,220)',
   },
 });

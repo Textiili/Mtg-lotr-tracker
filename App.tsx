@@ -22,9 +22,9 @@ export default function App() {
 
   useEffect(() => {
     async function hideSystemBars() {
-      if (Platform.OS === 'android') {
-        await NavigationBar.setVisibilityAsync('hidden');
-        await NavigationBar.setBackgroundColorAsync('transparent');
+      if (Platform.OS === "android") {
+        await NavigationBar.setVisibilityAsync("hidden");
+        await NavigationBar.setBackgroundColorAsync("transparent");
       }
     }
     
