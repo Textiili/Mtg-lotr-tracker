@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
   },
   header: {
     fontFamily: 'MiddleEarth',
-    fontSize: 30,
+    fontSize: 35,
     marginBottom: 30,
     alignSelf: 'center',
-    color: 'black',
-    textShadowColor: 'rgb(255, 255, 255)',
+    color: 'white',
+    textShadowColor: 'black',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 1,
   },
@@ -104,15 +104,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
-    backgroundColor: 'rgba(78, 78, 78, 0.80)',
+    backgroundColor: 'rgba(124,92,52, 0.8)',
   },
   selectedButton: {
-    backgroundColor: 'rgb(78,78,78)',
+    backgroundColor: 'rgb(88,62,32)',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
     fontSize: 18,
-    color: '#d2d4dc',
+    color: 'white',
+    textShadowColor: 'black',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 1,
   },
   startGameButton: {
     marginBottom: 100,
@@ -122,9 +125,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgb(78,78,78)',
+    backgroundColor: 'rgb(88,62,32)',
   },
   startGameButtonDisabled: {
-    backgroundColor: 'rgba(78, 78, 78, 0.80)',
+    backgroundColor: 'rgba(124,92,52, 0.8)',
   }
 });
