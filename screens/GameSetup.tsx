@@ -104,10 +104,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
-    backgroundColor: 'rgba(124,92,52, 0.8)',
+    backgroundColor: 'rgba(105,77,37, 0.5)',
   },
   selectedButton: {
-    backgroundColor: 'rgb(88,62,32)',
+    backgroundColor: 'rgb(56,38,17)',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgb(88,62,32)',
+    backgroundColor: 'rgb(56,38,17)',
   },
   startGameButtonDisabled: {
-    backgroundColor: 'rgba(124,92,52, 0.8)',
+    backgroundColor: 'rgba(105,77,37, 0.5)',
   }
 });

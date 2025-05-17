@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgb(88,62,32)',
+    backgroundColor: 'rgb(56,38,17)',
   },
   buttonText: {
     fontFamily: 'MiddleEarth',
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     left: -20,
     right: -20,
     bottom: -20,
-    backgroundColor: 'rgb(88,62,32)',
+    backgroundColor: 'rgb(56,38,17)',
     borderRadius: 15,
     zIndex: 2,
   },
@@ -368,6 +368,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
-    backgroundColor: 'rgb(88,62,32)',
+    backgroundColor: 'rgb(105,77,37)',
   },
 });
