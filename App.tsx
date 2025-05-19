@@ -20,15 +20,11 @@ export default function App() {
     'MiddleEarth': require('./assets/fonts/MiddleEarth.ttf'),
   });
 
+
   useEffect(() => {
-    async function hideSystemBars() {
-      if (Platform.OS === "android") {
-        await NavigationBar.setVisibilityAsync("hidden");
-        await NavigationBar.setBackgroundColorAsync("transparent");
-      }
-    }
-    
-    hideSystemBars();
+    NavigationBar.setVisibilityAsync('hidden').then(() => {
+      console.log(NavigationBar.getVisibilityAsync());
+    })
 
     if (!fontsLoaded) {
       SplashScreen.preventAutoHideAsync();

@@ -1,11 +1,6 @@
 # Mtg-lotr-tracker
 A Non commercial private use Lord of the Rings–themed life tracker for Magic: The Gathering, featuring a card scanner that fetches prices and rulings.
 
-![Image](https://github.com/user-attachments/assets/9e0984f0-edc8-4971-9548-a985cd91a2fe)
-
-
-![Image](https://github.com/user-attachments/assets/e6f75efb-7e5b-4373-a444-6c24274034b6)
-
 🔧 Technologies Used
 
 Expo: A development platform for building React Native apps quickly and efficiently.
